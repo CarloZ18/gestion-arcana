@@ -48,6 +48,12 @@ struct datahechizos{
     Arista*arraristas;
 };
 
+struct nodo{
+    string nombre;
+    nodo*next;
+};
+
+
 // Definimos una enumeración con los valores permitidos.
 enum class TipoAsociado : char
 {
@@ -119,7 +125,7 @@ public:
 
 int main()
 {
-    ifstream archivo("processedSpell.out");
+    ifstream archivo("spellList.in");
     if(!archivo.is_open()){
         cout<<"error al abrir el archivo"<<endl;
         return 1;
@@ -139,13 +145,40 @@ int main()
         for(int j=0; j<hechizo.numaristas; j++){
             //archivo>>hechizo.arraristas[j].obtenerOrigen;
             int o,d,p;
-            archivo>>o,d,p;
+            archivo>>o>>d>>p;
             hechizo.arraristas[j]=Arista(o,d,p);
         }
         archivo.ignore(1000, '\n');
-        delete[] hechizo.arraristas;
+        
     }
+   
     archivo.close();
+
+    ifstream archivo2( "underInvestigation.in");
+    if(!archivo2.is_open()){
+        cout<<"error al abrir el archivo"<<endl;
+        return 1;
+    }
+    nodo*inicio=nullptr;
+    nodo*actual=nullptr;
+    string linea;
+    while(getline(archivo2, linea)){
+        nodo*nuevonodo = new nodo;
+        nuevonodo->nombre=linea;
+        nuevonodo->next=nullptr;
+        if(inicio==nullptr){
+            inicio=nuevonodo;
+            actual=nuevonodo;
+        }
+        else{
+            actual->next=nuevonodo;
+            actual=actual->next;
+        }
+
+    }
+    archivo2.close();
+
+
 
 
 
