@@ -1,4 +1,4 @@
-#include <iostream>>
+#include <iostream>
 using namespace std;
 
 /*Modelo
@@ -29,8 +29,7 @@ enum class TipoAsociado : char
     L = 'L', // Luz
     O = 'O', // Oscuridad
     D = 'D', // Runa catalítica
-    F = 'F',
-    // Runa de estabilidad
+    F = 'F', // Runa de estabilidad
 };
 
 class Arista
@@ -38,6 +37,7 @@ class Arista
     int origen;
     int destino;
     int ponderacion;
+    Arista *siguiente;
 
 public:
     Arista(int ponderacion, int origen, int destino)
@@ -45,67 +45,286 @@ public:
         this->origen = origen;
         this->destino = destino;
         this->ponderacion = ponderacion;
+        this->siguiente = nullptr;
     }
 
     int obtenerOrigen() const { return origen; }
     int obtenerDestino() const { return destino; }
     int obtenerPonderacion() const { return ponderacion; }
+    int *obtenerArista() const
+    {
+        int *arista = new int[3]{this->origen, this->destino, this->ponderacion};
+        return arista;
+    }
+    Arista *obtenerPtr_siguiente()
+    {
+        return siguiente;
+    };
+
+    void modificarPonderacion(int ponderacion)
+    {
+        this->ponderacion = ponderacion;
+    };
+
+    void modificarPtr_siguiente(Arista *siguiente)
+    {
+        this->siguiente = siguiente;
+    };
+};
+
+class ListE
+{
+    Arista *ptr_principal;
+    int size;
+
+public:
+    ListE() : ptr_principal(nullptr), size(0) {};
+
+    bool isEmpty()
+    {
+        return ptr_principal == nullptr;
+    }
+
+    void push(int origen, int destino, int ponderacion)
+    {
+        Arista *newArista = new Arista(ponderacion, origen, destino);
+        newArista->modificarPtr_siguiente(nullptr);
+
+        if (isEmpty())
+        {
+            ptr_principal = newArista;
+        }
+        else
+        {
+            Arista *ptr_aux = ptr_principal;
+            while (ptr_aux->obtenerPtr_siguiente() != nullptr)
+            {
+                ptr_aux = ptr_aux->obtenerPtr_siguiente();
+            }
+            ptr_aux->modificarPtr_siguiente(newArista);
+        }
+        size++;
+    };
+
+    int pop()
+    {
+        if (isEmpty())
+        {
+            throw out_of_range("List is empty");
+        }
+        Arista *aux = ptr_principal;
+        ptr_principal = ptr_principal->obtenerPtr_siguiente();
+        size--;
+        return aux->obtenerPonderacion();
+    };
+
+    void deleteIndex(int index)
+    {
+        if (index < 0 || index >= size)
+        {
+            cout << "Index out of bounds" << endl;
+            return;
+        }
+
+        Arista *indice = ptr_principal;
+
+        if (index == 0)
+        {
+            Arista *ptr_aux = ptr_principal;
+            ptr_principal = ptr_principal->obtenerPtr_siguiente();
+            delete ptr_aux;
+        }
+        else
+        {
+
+            for (int i = 0; i < index - 1; i++)
+            {
+
+                indice = indice->obtenerPtr_siguiente();
+            }
+            Arista *ptr_aux = indice->obtenerPtr_siguiente();
+
+            indice->modificarPtr_siguiente(ptr_aux->obtenerPtr_siguiente());
+            delete ptr_aux;
+        }
+        size--;
+    }
+
+    void insertIndex(Arista element, int index)
+    {
+        Arista *newArista = new Arista(element);
+        newArista->modificarPtr_siguiente(nullptr);
+
+        Arista *indice = ptr_principal;
+
+        if (index == 0)
+        {
+            Arista *ptr_aux = ptr_principal;
+            ptr_principal = newArista;
+            ptr_principal->modificarPtr_siguiente(ptr_aux);
+        }
+
+        else
+        {
+
+            for (int i = 0; i < index - 1; i++)
+            {
+                indice = indice->obtenerPtr_siguiente();
+            }
+            Arista *ptr_aux = indice->obtenerPtr_siguiente();
+            indice->modificarPtr_siguiente(newArista);
+            newArista->modificarPtr_siguiente(ptr_aux);
+        }
+        size++;
+    }
+
+    void
+    print()
+    {
+
+        Arista *ptr_indice = ptr_principal;
+
+        cout << "Valores: ";
+        while (ptr_indice != nullptr)
+        {
+            cout << "(" << ptr_indice->obtenerOrigen() << ", " << ptr_indice->obtenerDestino() << ", " << ptr_indice->obtenerPonderacion() << ")";
+            if (ptr_indice->obtenerPtr_siguiente() != nullptr)
+            {
+                cout << " -> ";
+            }
+            ptr_indice = ptr_indice->obtenerPtr_siguiente();
+        }
+    }
 };
 
 class Vertice
 {
-    Arista *aristasAsociadas;
+    ListE aristasAsociadas;
     TipoAsociado tipoAsociado;
     int indice;
 
 public:
+    Vertice() {} // Constructor por defecto
+
     Vertice(int indice, TipoAsociado tipoAsociado)
     {
         this->tipoAsociado = tipoAsociado;
         this->indice = indice;
     }
-
-    void agregarArista(const Arista &arista)
-    {
-    }
-
     int obtenerIndice() const { return indice; }
 
-    Arista *obtenerAristas() const { return aristasAsociadas; }
+    void agregarArista(int origen, int destino, int ponderacion)
+    {
+        aristasAsociadas.push(origen, destino, ponderacion);
+    }
+
+    Arista *imprimirAristas() { aristasAsociadas.print(); }
 };
 
 class Hechizo
 {
-    Vertice *vertices;
+    string hechicero;
+    Vertice *vertice;
+    int numVertices;
 
 public:
     // Se crea el grafo con un número determinado de vértices.
-    Hechizo(int numVertices)
+    Hechizo(string hechicero, int numVertices, string cadenaDeTipos, int numAristas, int **aristas)
     {
-        // Para este ejemplo, asignamos el tipo 'A' a todos.
+        this->numVertices = numVertices;
+        this->hechicero = hechicero;
+        vertice = new Vertice[numVertices];
         for (int i = 0; i < numVertices; ++i)
         {
-            // Crear vertice con indice y tipo;
+            // Se asigna el vértice usando el carácter correspondiente
+            vertice[i] = Vertice(i + 1, TipoAsociado(cadenaDeTipos[i]));
+        }
+        for (int j = 0; j < numAristas; j++)
+        {
+            int origen = aristas[j][0];
+            int destino = aristas[j][1];
+            int ponderacion = aristas[j][2];
+            // Verifica que los índices sean válidos (suponiendo índices de 1 a numVertices)
+            if ((origen > 0 && origen <= numVertices) && (destino > 0 && destino <= numVertices))
+            {
+                // Asigna la arista a los vértices involucrados.
+                vertice[origen - 1].agregarArista(origen, destino, ponderacion);
+                vertice[destino - 1].agregarArista(destino, origen, ponderacion);
+            }
+            else
+            {
+                cout << "Indice de vertice invalido." << endl;
+            }
         }
     }
 
-    // Agrega una arista desde el vértice de origen hasta el destino.
-    void agregarArista(int origen, int destino, int ponderacion)
+    ~Hechizo()
     {
-        if (origen > 0 && vertices[origen].obtenerIndice() != NULL && destino > 0 && vertices[destino].obtenerIndice() != NULL)
+        // Libera el arreglo de vértices
+        delete[] vertice;
+    }
+
+    /* // Agrega una arista desde el vértice de origen hasta el destino.
+     void agregarArista(int origen, int destino, int ponderacion)
+     {
+         if (origen > 0 && vertice[origen].obtenerIndice() != NULL && destino > 0 && vertice[destino].obtenerIndice() != NULL)
+         {
+             Arista nuevaArista(origen, destino, ponderacion);
+             vertice[origen].agregarArista(nuevaArista);
+         }
+         else
+         {
+             cout << "Índice de vértice inválido." << endl;
+         }
+     }*/
+
+    void print()
+    {
+        cout << "Hechicero: " << hechicero << "\n";
+        for (int i = 0; i < numVertices; ++i)
         {
-            Arista nuevaArista(origen, destino, ponderacion);
-            vertices[origen].agregarArista(nuevaArista);
-        }
-        else
-        {
-            cout << "Índice de vértice inválido." << endl;
+            cout << "Vertice " << vertice[i].obtenerIndice() << " -> ";
+            // Imprime la lista de aristas asociadas al vértice.
+            vertice[i].imprimirAristas();
+            cout << "\n";
         }
     }
 };
 
 int main()
 {
+
+    int **data = new int *[7];
+    data[0] = new int[3]{6, 1, 2};
+    data[1] = new int[3]{6, 4, 1};
+    data[2] = new int[3]{1, 4, 4};
+    data[3] = new int[3]{1, 2, 1};
+    data[4] = new int[3]{2, 4, 7};
+    data[5] = new int[3]{2, 5, 2};
+    data[6] = new int[3]{5, 3, 1};
+    data[7] = new int[3]{4, 3, 3};
+    Hechizo *hechizo = new Hechizo("Kharlion Malondi", 6, "ABFBDB", 8, data);
+
+    hechizo->print();
+    /*6 1 2
+6 4 1
+1 4 4
+1 2 1
+2 4 7
+2 5 2
+5 3 1
+4 3 3*/
+
+    // Liberar la memoria asignada para cada arreglo de aristas
+    for (int i = 0; i < 8; i++)
+    {
+        delete[] data[i];
+    }
+    // Liberar el arreglo de punteros
+    delete[] data;
+
+    // Liberar la instancia del Hechizo (que a su vez libera el arreglo de vértices)
+    delete hechizo;
 
     return 0;
 }
