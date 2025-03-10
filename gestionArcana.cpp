@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <fstream>
 #include <math.h>
+#include <string>
 using namespace std;
 
 /*Modelo
@@ -43,7 +44,7 @@ class Arista
     Arista *siguiente;
 
 public:
-    Arista(int ponderacion, int origen, int destino)
+    Arista( int origen, int destino,int ponderacion)
     {
         this->origen = origen;
         this->destino = destino;
@@ -105,7 +106,7 @@ public:
 
     void push(int origen, int destino, int ponderacion)
     {
-        Arista *newArista = new Arista(ponderacion, origen, destino);
+        Arista *newArista = new Arista( origen, destino, ponderacion);
         newArista->modificarPtr_siguiente(nullptr);
 
         if (isEmpty())
@@ -244,6 +245,7 @@ class Hechizo
     string hechicero;
     Vertice *vertice;
     int numVertices;
+    string tiposvertices;
 
 public:
     // Se crea el grafo con un número determinado de vértices.
@@ -251,6 +253,7 @@ public:
     {
         this->numVertices = numVertices;
         this->hechicero = hechicero;
+        this->tiposvertices=cadenaDeTipos;
         vertice = new Vertice[numVertices];
         for (int i = 0; i < numVertices; ++i)
         {
@@ -281,6 +284,9 @@ public:
         // Libera el arreglo de vértices
         delete[] vertice;
     }
+    string obtenertiposvertices()const{
+        return tiposvertices;
+    }
 
     void print()
     {
@@ -294,6 +300,93 @@ public:
         }
     }
 };
+
+bool cuantasA(Hechizo hechizo1){
+    string tipos=hechizo1.obtenertiposvertices();
+    int contadorA=0;
+    for(char c: tipos){
+        if(c=='A' || c=='a'){
+            contadorA++;
+        }
+    }
+    return contadorA==1;
+
+}
+int cuantasrunas(Hechizo hechizo1){
+    string tipos=hechizo1.obtenertiposvertices();
+    int contadorrunas=0;
+    int contadori=0, contadorq=0, contadort=0, contadorv=0, contadorl=0, contadoro=0;
+    for(char c : tipos){
+        switch(c){
+            case 'I':{
+                contadori++;
+                break;
+            }
+            case 'Q':{
+                contadorq++;
+                break;
+            }
+            case 'T':{
+                contadort++;
+                break;
+            }
+            case 'V':{
+                contadorv++;
+                break;
+            }
+            case 'L':{
+                contadorl++;
+                break;
+            }
+            case 'O': {
+                contadoro++;
+                break;
+            }
+        }
+        if(contadori>contadorq &&contadori>contadort && contadori>contadorv
+        && contadori>contadorl && contadori>contadoro){
+            contadorrunas=contadori;
+            return contadorrunas;
+        }
+        if(contadorq>contadori &&contadorq>contadort && contadorq>contadorv
+            && contadorq>contadorl && contadorq>contadoro){
+                contadorrunas=contadorq;
+                return contadorrunas;
+            }
+        if(contadort>contadorq &&contadort>contadori && contadort>contadorv
+                && contadort>contadorl && contadort>contadoro){
+                    contadorrunas=contadort;
+                    return contadorrunas;
+                }
+        if(contadorv>contadorq &&contadorv>contadort && contadorv>contadori
+                    && contadorv>contadorl && contadorv>contadoro){
+                        contadorrunas=contadorv;
+                        return contadorrunas;
+                    }
+        if(contadorl>contadorq &&contadorl>contadort && contadorl>contadorv
+                        && contadorl>contadori && contadorl>contadoro){
+                            contadorrunas=contadorl;
+                            return contadorrunas;
+                        }
+        if(contadoro>contadorq &&contadoro>contadort && contadoro>contadorv
+                            && contadoro>contadorl && contadoro>contadori){
+                                contadorrunas=contadoro;
+                                return contadorrunas;
+                            }
+
+    }
+}
+bool legalidad(Hechizo hechizo1){
+    int contadorlegalidad;
+    if(cuantasA(hechizo1)== false){
+        contadorlegalidad++;
+    }
+    if(cuantasrunas(hechizo1)>3){
+        cout<<cuantasrunas(hechizo1)<<endl;
+        return false;
+    }
+
+}
 
 int main()
 {
@@ -344,11 +437,11 @@ int main()
     }
     Nodo *inicio = nullptr;
     Nodo *actual = nullptr;
-    string linea;
-    while (getline(archivo2, linea))
+    string linea2;
+    while (getline(archivo2, linea2))
     {
         Nodo *nuevonodo = new Nodo;
-        nuevonodo->nombre = linea;
+        nuevonodo->nombre = linea2;
         nuevonodo->next = nullptr;
         if (inicio == nullptr)
         {
