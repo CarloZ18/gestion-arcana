@@ -1,4 +1,7 @@
 #include <iostream>
+#include <stdlib.h>
+#include <fstream>
+#include <math.h>
 using namespace std;
 
 /*Modelo
@@ -70,6 +73,21 @@ public:
     {
         this->siguiente = siguiente;
     };
+};
+
+struct dataHechizos
+{
+    string nombreMago;
+    int numVertices;
+    string tiposVertices;
+    int numAristas;
+    int **arrAristas;
+};
+
+struct Nodo
+{
+    string nombre;
+    Nodo *next;
 };
 
 class ListE
@@ -264,20 +282,6 @@ public:
         delete[] vertice;
     }
 
-    /* // Agrega una arista desde el vértice de origen hasta el destino.
-     void agregarArista(int origen, int destino, int ponderacion)
-     {
-         if (origen > 0 && vertice[origen].obtenerIndice() != NULL && destino > 0 && vertice[destino].obtenerIndice() != NULL)
-         {
-             Arista nuevaArista(origen, destino, ponderacion);
-             vertice[origen].agregarArista(nuevaArista);
-         }
-         else
-         {
-             cout << "Índice de vértice inválido." << endl;
-         }
-     }*/
-
     void print()
     {
         cout << "Hechicero: " << hechicero << "\n";
@@ -293,38 +297,78 @@ public:
 
 int main()
 {
-
-    int **data = new int *[7];
-    data[0] = new int[3]{6, 1, 2};
-    data[1] = new int[3]{6, 4, 1};
-    data[2] = new int[3]{1, 4, 4};
-    data[3] = new int[3]{1, 2, 1};
-    data[4] = new int[3]{2, 4, 7};
-    data[5] = new int[3]{2, 5, 2};
-    data[6] = new int[3]{5, 3, 1};
-    data[7] = new int[3]{4, 3, 3};
-    Hechizo *hechizo = new Hechizo("Kharlion Malondi", 6, "ABFBDB", 8, data);
-
-    hechizo->print();
-    /*6 1 2
-6 4 1
-1 4 4
-1 2 1
-2 4 7
-2 5 2
-5 3 1
-4 3 3*/
-
-    // Liberar la memoria asignada para cada arreglo de aristas
-    for (int i = 0; i < 8; i++)
+    dataHechizos hechizo;
+    int numHechizos;
+    ifstream archivo("spellList.in");
+    if (!archivo.is_open())
     {
-        delete[] data[i];
+        cout << "error al abrir el archivo" << endl;
+        return 1;
+    }
+
+    archivo >> numHechizos;
+    archivo.ignore(1000, '\n');
+    string linea;
+    for (int i = 0; i < numHechizos; i++)
+    {
+
+        getline(archivo, hechizo.nombreMago);
+        archivo >> hechizo.numVertices;
+        archivo >> hechizo.tiposVertices;
+        archivo >> hechizo.numAristas;
+        hechizo.arrAristas = new int *[hechizo.numAristas];
+        for (int j = 0; j < hechizo.numAristas; j++)
+        {
+            hechizo.arrAristas[j] = new int[3];
+            int o, d, p;
+            archivo >> o >> d >> p;
+            hechizo.arrAristas[j][0] = o;
+            hechizo.arrAristas[j][1] = d;
+            hechizo.arrAristas[j][2] = p;
+        }
+        Hechizo *hechizo1 = new Hechizo(hechizo.nombreMago, hechizo.numVertices, hechizo.tiposVertices, hechizo.numAristas, hechizo.arrAristas);
+        hechizo1->print();
+        // Liberar la instancia del Hechizo (que a su vez libera el arreglo de vértices)
+        delete hechizo1;
+
+        archivo.ignore(1000, '\n');
+    }
+
+    archivo.close();
+
+    ifstream archivo2("underInvestigation.in");
+    if (!archivo2.is_open())
+    {
+        cout << "error al abrir el archivo" << endl;
+        return 1;
+    }
+    Nodo *inicio = nullptr;
+    Nodo *actual = nullptr;
+    string linea;
+    while (getline(archivo2, linea))
+    {
+        Nodo *nuevonodo = new Nodo;
+        nuevonodo->nombre = linea;
+        nuevonodo->next = nullptr;
+        if (inicio == nullptr)
+        {
+            inicio = nuevonodo;
+            actual = nuevonodo;
+        }
+        else
+        {
+            actual->next = nuevonodo;
+            actual = actual->next;
+        }
+    }
+    archivo2.close();
+    // Liberar la memoria asignada para cada arreglo de aristas
+    for (int i = 0; i < hechizo.numAristas; i++)
+    {
+        delete[] hechizo.arrAristas[i];
     }
     // Liberar el arreglo de punteros
-    delete[] data;
-
-    // Liberar la instancia del Hechizo (que a su vez libera el arreglo de vértices)
-    delete hechizo;
+    delete[] hechizo.arrAristas;
 
     return 0;
 }
