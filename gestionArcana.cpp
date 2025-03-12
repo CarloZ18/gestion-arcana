@@ -44,7 +44,7 @@ class Arista
     Arista *siguiente;
 
 public:
-    Arista( int origen, int destino,int ponderacion)
+    Arista(int origen, int destino, int ponderacion)
     {
         this->origen = origen;
         this->destino = destino;
@@ -107,7 +107,7 @@ public:
 
     void push(int origen, int destino, int ponderacion)
     {
-        Arista *newArista = new Arista( origen, destino, ponderacion);
+        Arista *newArista = new Arista(origen, destino, ponderacion);
         newArista->modificarPtr_siguiente(nullptr);
 
         if (isEmpty())
@@ -209,7 +209,7 @@ public:
     // Se crea el grafo con un número determinado de vértices.
     Hechizo(int IDHechizo, string hechicero, int numVertices, string cadenaDeTipos, int numAristas, int **aristas)
     {
-        this->cadenaTipos=cadenaDeTipos;
+        this->cadenaTipos = cadenaDeTipos;
         this->IDHechizo = IDHechizo;
         this->numVertices = numVertices;
         this->hechicero = hechicero;
@@ -222,7 +222,7 @@ public:
         }
         for (int j = 0; j < numAristas; j++)
         {
-            //6,1,2
+            // 6,1,2
             int origen = aristas[j][0];
             int destino = aristas[j][1];
             int ponderacion = aristas[j][2];
@@ -245,7 +245,8 @@ public:
         return this->IDHechizo;
     }
 
-    string obtenerHechicero(){
+    string obtenerHechicero()
+    {
         return this->hechicero;
     }
 
@@ -263,7 +264,8 @@ public:
     {
         return this->numAristas;
     }
-    string obtenerTiposVertices(){
+    string obtenerTiposVertices()
+    {
         return this->cadenaTipos;
     }
 
@@ -272,7 +274,7 @@ public:
         // Libera el arreglo de vértices
         delete[] vertice;
     }
-    
+
     void print()
     {
         cout << "Hechicero: " << hechicero << "\n";
@@ -324,7 +326,7 @@ int **matrizAdyacencia(Hechizo *hechizo)
 
     // Imprimir
     cout << "Hechizo: " << hechizo->obtenerID() << endl;
-    cout << "Hechicero: "<<hechizo->obtenerHechicero()<<endl;
+    cout << "Hechicero: " << hechizo->obtenerHechicero() << endl;
     cout << "  ";
     for (int i = 0; i < numVertices; i++)
     {
@@ -345,91 +347,109 @@ int **matrizAdyacencia(Hechizo *hechizo)
     return matriz;
 }
 
-bool cuantasA(Hechizo hechizo1){
-    string tipos=hechizo1.obtenerTiposVertices();
-    int contadorA=0;
-    for(char c: tipos){
-        if(c=='A' || c=='a'){
+bool cuantasA(Hechizo *hechizo)
+{
+    string tipos = hechizo->obtenerTiposVertices();
+    int numVertices = hechizo->obtenerNumVertices();
+    int contadorA = 0;
+    for (int i = 0; i < numVertices; i++)
+    {
+        if (tipos[i] == 'A' || tipos[i] == 'a')
+        {
             contadorA++;
         }
     }
-    return contadorA==1;
-
+    return contadorA == 1;
 }
-int cuantasrunas(Hechizo hechizo1){
-    string tipos=hechizo1.obtenerTiposVertices();
-    int contadorrunas=0;
-    int contadori=0, contadorq=0, contadort=0, contadorv=0, contadorl=0, contadoro=0;
-    for(char c : tipos){
-        switch(c){
-            case 'I':{
-                contadori++;
-                break;
-            }
-            case 'Q':{
-                contadorq++;
-                break;
-            }
-            case 'T':{
-                contadort++;
-                break;
-            }
-            case 'V':{
-                contadorv++;
-                break;
-            }
-            case 'L':{
-                contadorl++;
-                break;
-            }
-            case 'O': {
-                contadoro++;
-                break;
-            }
+int cuantasRunas(Hechizo *hechizo)
+{
+    string tipos = hechizo->obtenerTiposVertices();
+    int contadorRunas = 0;
+    int contadorI = 0, contadorQ = 0, contadorT = 0, contadorV = 0, contadorL = 0, contadorO = 0;
+    for (char c : tipos)
+    {
+        switch (c)
+        {
+        case 'I':
+        {
+            contadorI++;
+            break;
         }
-        if(contadori>contadorq &&contadori>contadort && contadori>contadorv
-        && contadori>contadorl && contadori>contadoro){
-            contadorrunas=contadori;
-            return contadorrunas;
+        case 'Q':
+        {
+            contadorQ++;
+            break;
         }
-        if(contadorq>contadori &&contadorq>contadort && contadorq>contadorv
-            && contadorq>contadorl && contadorq>contadoro){
-                contadorrunas=contadorq;
-                return contadorrunas;
-            }
-        if(contadort>contadorq &&contadort>contadori && contadort>contadorv
-                && contadort>contadorl && contadort>contadoro){
-                    contadorrunas=contadort;
-                    return contadorrunas;
-                }
-        if(contadorv>contadorq &&contadorv>contadort && contadorv>contadori
-                    && contadorv>contadorl && contadorv>contadoro){
-                        contadorrunas=contadorv;
-                        return contadorrunas;
-                    }
-        if(contadorl>contadorq &&contadorl>contadort && contadorl>contadorv
-                        && contadorl>contadori && contadorl>contadoro){
-                            contadorrunas=contadorl;
-                            return contadorrunas;
-                        }
-        if(contadoro>contadorq &&contadoro>contadort && contadoro>contadorv
-                            && contadoro>contadorl && contadoro>contadori){
-                                contadorrunas=contadoro;
-                                return contadorrunas;
-                            }
-
+        case 'T':
+        {
+            contadorT++;
+            break;
+        }
+        case 'V':
+        {
+            contadorV++;
+            break;
+        }
+        case 'L':
+        {
+            contadorL++;
+            break;
+        }
+        case 'O':
+        {
+            contadorO++;
+            break;
+        }
+        default:
+            break;
+        }
+    }
+    if (contadorI > contadorQ && contadorI > contadorT && contadorI > contadorV && contadorI > contadorL && contadorI > contadorO)
+    {
+        contadorRunas = contadorI;
+        return contadorRunas;
+    }
+    if (contadorQ > contadorI && contadorQ > contadorT && contadorQ > contadorV && contadorQ > contadorL && contadorQ > contadorO)
+    {
+        contadorRunas = contadorQ;
+        return contadorRunas;
+    }
+    if (contadorT > contadorQ && contadorT > contadorI && contadorT > contadorV && contadorT > contadorL && contadorT > contadorO)
+    {
+        contadorRunas = contadorT;
+        return contadorRunas;
+    }
+    if (contadorV > contadorQ && contadorV > contadorT && contadorV > contadorI && contadorV > contadorL && contadorV > contadorO)
+    {
+        contadorRunas = contadorV;
+        return contadorRunas;
+    }
+    if (contadorL > contadorQ && contadorL > contadorT && contadorL > contadorV && contadorL > contadorI && contadorL > contadorO)
+    {
+        contadorRunas = contadorL;
+        return contadorRunas;
+    }
+    if (contadorO > contadorQ && contadorO > contadorT && contadorO > contadorV && contadorO > contadorL && contadorO > contadorI)
+    {
+        contadorRunas = contadorO;
+        return contadorRunas;
+    }
+    if (contadorRunas == 0)
+    {
+        return 0;
     }
 }
-bool legalidad(Hechizo hechizo1){
-    int contadorlegalidad;
-    if(cuantasA(hechizo1)== false){
-        contadorlegalidad++;
+bool legalidad(Hechizo *hechizo)
+{
+    int contadorIlegalidad;
+    if (cuantasA(hechizo) == false)
+    {
+        contadorIlegalidad++;
     }
-    if(cuantasrunas(hechizo1)>3){
-        cout<<cuantasrunas(hechizo1)<<endl;
+    if (cuantasRunas(hechizo) > 3)
+    {
         return false;
     }
-
 }
 
 int main()
@@ -464,14 +484,15 @@ int main()
         }
         Hechizo *hechizo1 = new Hechizo(i + 1, hechizo.nombreMago, hechizo.numVertices, hechizo.tiposVertices, hechizo.numAristas, hechizo.arrAristas);
         // hechizo1->print();
-        int **matriz = matrizAdyacencia(hechizo1);
-
+         int **matriz = matrizAdyacencia(hechizo1);
+        int validacionA = cuantasRunas(hechizo1);
+        cout << validacionA;
         for (int i = 0; i < hechizo.numVertices; i++)
         {
-            delete[] matriz[i]; // Libera cada fila
+             delete[] matriz[i]; // Libera cada fila
         }
-        delete[] matriz;
-        // Liberar la instancia del Hechizo (que a su vez libera el arreglo de vértices)
+         delete[] matriz;
+        //  Liberar la instancia del Hechizo (que a su vez libera el arreglo de vértices)
         delete hechizo1;
 
         archivo.ignore(1000, '\n');
