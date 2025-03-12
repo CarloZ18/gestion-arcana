@@ -203,12 +203,13 @@ class Hechizo
     int IDHechizo;
     int numVertices;
     int numAristas;
+    string cadenaTipos;
 
 public:
     // Se crea el grafo con un número determinado de vértices.
     Hechizo(int IDHechizo, string hechicero, int numVertices, string cadenaDeTipos, int numAristas, int **aristas)
     {
-
+        this->cadenaTipos=cadenaDeTipos;
         this->IDHechizo = IDHechizo;
         this->numVertices = numVertices;
         this->hechicero = hechicero;
@@ -261,6 +262,9 @@ public:
     int obtenerNumAristas() const
     {
         return this->numAristas;
+    }
+    string obtenerTiposVertices(){
+        return this->cadenaTipos;
     }
 
     ~Hechizo()
@@ -342,7 +346,7 @@ int **matrizAdyacencia(Hechizo *hechizo)
 }
 
 bool cuantasA(Hechizo hechizo1){
-    string tipos=hechizo1.obtenertiposvertices();
+    string tipos=hechizo1.obtenerTiposVertices();
     int contadorA=0;
     for(char c: tipos){
         if(c=='A' || c=='a'){
@@ -353,7 +357,7 @@ bool cuantasA(Hechizo hechizo1){
 
 }
 int cuantasrunas(Hechizo hechizo1){
-    string tipos=hechizo1.obtenertiposvertices();
+    string tipos=hechizo1.obtenerTiposVertices();
     int contadorrunas=0;
     int contadori=0, contadorq=0, contadort=0, contadorv=0, contadorl=0, contadoro=0;
     for(char c : tipos){
