@@ -77,6 +77,7 @@ public:
 
 struct dataHechizos
 {
+    int ID;
     string nombreMago;
     int numVertices;
     string tiposVertices;
@@ -124,6 +125,11 @@ public:
         size++;
     };
 
+    Arista *obtenerPtrPrincipal()
+    {
+        return ptr_principal;
+    }
+
     int pop()
     {
         if (isEmpty())
@@ -135,66 +141,6 @@ public:
         size--;
         return aux->obtenerPonderacion();
     };
-
-    void deleteIndex(int index)
-    {
-        if (index < 0 || index >= size)
-        {
-            cout << "Index out of bounds" << endl;
-            return;
-        }
-
-        Arista *indice = ptr_principal;
-
-        if (index == 0)
-        {
-            Arista *ptr_aux = ptr_principal;
-            ptr_principal = ptr_principal->obtenerPtr_siguiente();
-            delete ptr_aux;
-        }
-        else
-        {
-
-            for (int i = 0; i < index - 1; i++)
-            {
-
-                indice = indice->obtenerPtr_siguiente();
-            }
-            Arista *ptr_aux = indice->obtenerPtr_siguiente();
-
-            indice->modificarPtr_siguiente(ptr_aux->obtenerPtr_siguiente());
-            delete ptr_aux;
-        }
-        size--;
-    }
-
-    void insertIndex(Arista element, int index)
-    {
-        Arista *newArista = new Arista(element);
-        newArista->modificarPtr_siguiente(nullptr);
-
-        Arista *indice = ptr_principal;
-
-        if (index == 0)
-        {
-            Arista *ptr_aux = ptr_principal;
-            ptr_principal = newArista;
-            ptr_principal->modificarPtr_siguiente(ptr_aux);
-        }
-
-        else
-        {
-
-            for (int i = 0; i < index - 1; i++)
-            {
-                indice = indice->obtenerPtr_siguiente();
-            }
-            Arista *ptr_aux = indice->obtenerPtr_siguiente();
-            indice->modificarPtr_siguiente(newArista);
-            newArista->modificarPtr_siguiente(ptr_aux);
-        }
-        size++;
-    }
 
     void
     print()
@@ -231,9 +177,19 @@ public:
     }
     int obtenerIndice() const { return indice; }
 
+    TipoAsociado obtenerTipo()
+    {
+        return tipoAsociado;
+    }
+
     void agregarArista(int origen, int destino, int ponderacion)
     {
         aristasAsociadas.push(origen, destino, ponderacion);
+    }
+
+    Arista *obtenerPrimeraArista()
+    {
+        return aristasAsociadas.obtenerPtrPrincipal();
     }
 
     Arista *imprimirAristas() { aristasAsociadas.print(); }
@@ -243,14 +199,19 @@ class Hechizo
 {
     string hechicero;
     Vertice *vertice;
+    int IDHechizo;
     int numVertices;
+    int numAristas;
 
 public:
     // Se crea el grafo con un número determinado de vértices.
-    Hechizo(string hechicero, int numVertices, string cadenaDeTipos, int numAristas, int **aristas)
+    Hechizo(int IDHechizo, string hechicero, int numVertices, string cadenaDeTipos, int numAristas, int **aristas)
     {
+
+        this->IDHechizo = IDHechizo;
         this->numVertices = numVertices;
         this->hechicero = hechicero;
+        this->numAristas = numAristas;
         vertice = new Vertice[numVertices];
         for (int i = 0; i < numVertices; ++i)
         {
@@ -259,6 +220,7 @@ public:
         }
         for (int j = 0; j < numAristas; j++)
         {
+            //6,1,2
             int origen = aristas[j][0];
             int destino = aristas[j][1];
             int ponderacion = aristas[j][2];
@@ -274,6 +236,30 @@ public:
                 cout << "Indice de vertice invalido." << endl;
             }
         }
+    }
+
+    int obtenerID()
+    {
+        return this->IDHechizo;
+    }
+
+    string obtenerHechicero(){
+        return this->hechicero;
+    }
+
+    Vertice *obtenerVertices()
+    {
+        return vertice;
+    }
+
+    int obtenerNumVertices() const
+    {
+        return this->numVertices;
+    }
+
+    int obtenerNumAristas() const
+    {
+        return this->numAristas;
     }
 
     ~Hechizo()
@@ -295,6 +281,65 @@ public:
     }
 };
 
+int **matrizAdyacencia(Hechizo *hechizo)
+{
+    int numVertices = hechizo->obtenerNumVertices();
+    // Crear la matriz y asignar cada fila
+    int **matriz = new int *[numVertices];
+    for (int i = 0; i < numVertices; i++)
+    {
+        matriz[i] = new int[numVertices];
+        // Inicializar la fila en 0
+        for (int j = 0; j < numVertices; j++)
+        {
+
+            matriz[i][j] = 0;
+        }
+    }
+
+    // Obtener arreglo de vértices
+    Vertice *vertices = hechizo->obtenerVertices();
+    // Recorrer cada vértice y llenar la matriz con las ponderaciones de sus aristas
+    for (int i = 0; i < numVertices; i++)
+    {
+        // Obtenemos la primera arista del vértice i
+        Arista *aristaPtr = vertices[i].obtenerPrimeraArista();
+        while (aristaPtr != nullptr)
+        {
+            // 6,1,2
+            int fila = aristaPtr->obtenerOrigen() - 1;
+            int columna = aristaPtr->obtenerDestino() - 1;
+            int peso = aristaPtr->obtenerPonderacion();
+            // Asignamos el peso correspondiente en la matriz
+            matriz[fila][columna] = peso;
+            matriz[columna][fila] = peso;
+            aristaPtr = aristaPtr->obtenerPtr_siguiente();
+        }
+    }
+
+    // Imprimir
+    cout << "Hechizo: " << hechizo->obtenerID() << endl;
+    cout << "Hechicero: "<<hechizo->obtenerHechicero()<<endl;
+    cout << "  ";
+    for (int i = 0; i < numVertices; i++)
+    {
+        cout << " " << vertices[i].obtenerIndice() << "  ";
+    }
+    cout << endl;
+
+    for (int i = 0; i < numVertices; i++)
+    {
+        cout << vertices[i].obtenerIndice() << " ";
+        for (int j = 0; j < numVertices; j++)
+        {
+            cout << "[" << matriz[i][j] << "]" << " ";
+        }
+        cout << endl;
+    }
+
+    return matriz;
+}
+
 int main()
 {
     dataHechizos hechizo;
@@ -308,10 +353,9 @@ int main()
 
     archivo >> numHechizos;
     archivo.ignore(1000, '\n');
-    string linea;
+    string hechicero;
     for (int i = 0; i < numHechizos; i++)
     {
-
         getline(archivo, hechizo.nombreMago);
         archivo >> hechizo.numVertices;
         archivo >> hechizo.tiposVertices;
@@ -326,8 +370,15 @@ int main()
             hechizo.arrAristas[j][1] = d;
             hechizo.arrAristas[j][2] = p;
         }
-        Hechizo *hechizo1 = new Hechizo(hechizo.nombreMago, hechizo.numVertices, hechizo.tiposVertices, hechizo.numAristas, hechizo.arrAristas);
-        hechizo1->print();
+        Hechizo *hechizo1 = new Hechizo(i + 1, hechizo.nombreMago, hechizo.numVertices, hechizo.tiposVertices, hechizo.numAristas, hechizo.arrAristas);
+        // hechizo1->print();
+        int **matriz = matrizAdyacencia(hechizo1);
+
+        for (int i = 0; i < hechizo.numVertices; i++)
+        {
+            delete[] matriz[i]; // Libera cada fila
+        }
+        delete[] matriz;
         // Liberar la instancia del Hechizo (que a su vez libera el arreglo de vértices)
         delete hechizo1;
 
@@ -344,11 +395,11 @@ int main()
     }
     Nodo *inicio = nullptr;
     Nodo *actual = nullptr;
-    string linea;
-    while (getline(archivo2, linea))
+    string hechiceroSospechozo;
+    while (getline(archivo2, hechiceroSospechozo))
     {
         Nodo *nuevonodo = new Nodo;
-        nuevonodo->nombre = linea;
+        nuevonodo->nombre = hechiceroSospechozo;
         nuevonodo->next = nullptr;
         if (inicio == nullptr)
         {
