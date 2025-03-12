@@ -330,23 +330,25 @@ int **matrizAdyacencia(Hechizo *hechizo)
     cout << "  ";
     for (int i = 0; i < numVertices; i++)
     {
-        cout << " " << vertices[i].obtenerIndice() << "  ";
+        cout << " " << static_cast<char>(vertices[i].obtenerTipo()) << "  ";
     }
     cout << endl;
 
     for (int i = 0; i < numVertices; i++)
     {
-        cout << vertices[i].obtenerIndice() << " ";
+        cout << static_cast<char>(vertices[i].obtenerTipo()) << " ";
         for (int j = 0; j < numVertices; j++)
         {
             cout << "[" << matriz[i][j] << "]" << " ";
         }
         cout << endl;
     }
+    cout << endl;
 
     return matriz;
 }
 
+// Regla 1
 bool cuantasA(Hechizo *hechizo)
 {
     string tipos = hechizo->obtenerTiposVertices();
@@ -361,10 +363,28 @@ bool cuantasA(Hechizo *hechizo)
     }
     return contadorA == 1;
 }
-int cuantasRunas(Hechizo *hechizo)
+
+// Regla 2
+bool distribucionCorrecta(Hechizo *hechizo, int **matriz)
+{
+    int numVertices = hechizo->obtenerNumVertices();
+    for (int i = 0; i < numVertices; i++)
+    {
+        for (int j = 0; j < numVertices; j++)
+        {
+            if (matriz[i][j] != 0 && (hechizo->obtenerTiposVertices()[i] == 'A' && hechizo->obtenerTiposVertices()[j] != 'B'))
+            {
+                return false;
+            }
+        }
+    }
+    return true;
+};
+
+// Regla 3
+bool cuantasRunas(Hechizo *hechizo)
 {
     string tipos = hechizo->obtenerTiposVertices();
-    int contadorRunas = 0;
     int contadorI = 0, contadorQ = 0, contadorT = 0, contadorV = 0, contadorL = 0, contadorO = 0;
     for (char c : tipos)
     {
@@ -372,84 +392,162 @@ int cuantasRunas(Hechizo *hechizo)
         {
         case 'I':
         {
+
             contadorI++;
+            if (contadorI > 3 || (contadorI > 0 && (contadorQ + contadorT + contadorV + contadorL + contadorO) > 0))
+            {
+                return false;
+            }
+
             break;
         }
         case 'Q':
         {
             contadorQ++;
+            if (contadorQ > 3 || (contadorQ > 0 && (contadorI + contadorT + contadorV + contadorL + contadorO) > 0))
+            {
+                return false;
+            }
             break;
         }
         case 'T':
         {
             contadorT++;
+            if (contadorT > 3 || (contadorT > 0 && (contadorQ + contadorI + contadorV + contadorL + contadorO) > 0))
+            {
+                return false;
+            }
             break;
         }
         case 'V':
         {
             contadorV++;
+            if (contadorV > 3 || (contadorV > 0 && (contadorQ + contadorT + contadorI + contadorL + contadorO) > 0))
+            {
+                return false;
+            }
             break;
         }
         case 'L':
         {
             contadorL++;
+            if (contadorL > 3 || (contadorL > 0 && (contadorQ + contadorT + contadorV + contadorI + contadorO) > 0))
+            {
+                return false;
+            }
             break;
         }
         case 'O':
         {
             contadorO++;
+            if (contadorO > 3 || (contadorO > 0 && (contadorQ + contadorT + contadorV + contadorL + contadorI) > 0))
+            {
+                return false;
+            }
             break;
         }
-        default:
-            break;
         }
     }
-    if (contadorI > contadorQ && contadorI > contadorT && contadorI > contadorV && contadorI > contadorL && contadorI > contadorO)
-    {
-        contadorRunas = contadorI;
-        return contadorRunas;
-    }
-    if (contadorQ > contadorI && contadorQ > contadorT && contadorQ > contadorV && contadorQ > contadorL && contadorQ > contadorO)
-    {
-        contadorRunas = contadorQ;
-        return contadorRunas;
-    }
-    if (contadorT > contadorQ && contadorT > contadorI && contadorT > contadorV && contadorT > contadorL && contadorT > contadorO)
-    {
-        contadorRunas = contadorT;
-        return contadorRunas;
-    }
-    if (contadorV > contadorQ && contadorV > contadorT && contadorV > contadorI && contadorV > contadorL && contadorV > contadorO)
-    {
-        contadorRunas = contadorV;
-        return contadorRunas;
-    }
-    if (contadorL > contadorQ && contadorL > contadorT && contadorL > contadorV && contadorL > contadorI && contadorL > contadorO)
-    {
-        contadorRunas = contadorL;
-        return contadorRunas;
-    }
-    if (contadorO > contadorQ && contadorO > contadorT && contadorO > contadorV && contadorO > contadorL && contadorO > contadorI)
-    {
-        contadorRunas = contadorO;
-        return contadorRunas;
-    }
-    if (contadorRunas == 0)
-    {
-        return 0;
-    }
+    return true;
 }
-bool legalidad(Hechizo *hechizo)
+
+// Regla 4
+bool adyacenciaDeRunas(Hechizo *hechizo, int **matriz)
+{
+    int numVertices = hechizo->obtenerNumVertices();
+    for (int i = 0; i < numVertices; i++)
+    {
+        for (int j = 0; j < numVertices; j++)
+        {
+            if (matriz[i][j] != 0 && (hechizo->obtenerTiposVertices()[j] == 'T' || 'I' || 'Q' || 'V' || 'L' || 'O' && hechizo->obtenerTiposVertices()[i] == 'D'))
+            {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+ 
+int cicloDfs(int **matriz, int numVertices, int inicio, int actual, bool *visitado, int cuenta)
+{int maxCiclo = 0;
+    // Si no se encuentra ciclo se devuelve -1
+    for (int vecino = 0; vecino < numVertices; vecino++)
+    {
+        // Si existe una arista del vértice actual al vecino
+        if (matriz[actual][vecino] != 0)
+        {
+            // Si se regresa al vértice de inicio (y se ha recorrido al menos 1 arista)
+            if (vecino == inicio && cuenta >= 1)
+            {
+                int cicloActual = cuenta + 1; // Se cuenta la arista de cierre
+                if (cicloActual > maxCiclo) {
+                    maxCiclo = cicloActual;
+                }
+            }
+            // Si el vecino no se ha visitado aún, continuamos la búsqueda
+            else if (!visitado[vecino])
+            {
+    
+                visitado[vecino] = true;
+                int cicloEncontrado = cicloDfs(matriz, numVertices, inicio, vecino, visitado, cuenta + 1);
+                if (cicloEncontrado > maxCiclo)
+                {
+                    maxCiclo = cicloEncontrado;
+                }
+                visitado[vecino] = false;
+            }
+        }
+    }
+
+    return maxCiclo;
+}
+// Regla 5
+int cicloMasLargo(Hechizo *hechizo, int **matriz)
+{
+    int numVertices = hechizo->obtenerNumVertices();
+    int maxCicloGlobal = 0;
+    // Crear arreglo "visitado" de tamaño n
+    bool *visitado = new bool[numVertices];
+    for (int i = 0; i < numVertices; i++)
+    {
+        visitado[i] = false;
+    }
+    // Probar con cada vértice como punto de inicio
+    for (int i = 0; i < numVertices; i++)
+    {
+        visitado[i] = true;
+        int cicloDesdeI = cicloDfs(matriz, numVertices, i, i, visitado, 0);
+        if (cicloDesdeI > maxCicloGlobal)
+        {
+            maxCicloGlobal = cicloDesdeI;
+        }
+        visitado[i] = false;
+    }
+    delete[] visitado;
+    return maxCicloGlobal;
+}
+
+bool legalidad(Hechizo *hechizo, int **matriz)
 {
     int contadorIlegalidad;
     if (cuantasA(hechizo) == false)
     {
-        contadorIlegalidad++;
+        return false;
     }
-    if (cuantasRunas(hechizo) > 3)
+    if (distribucionCorrecta(hechizo, matriz) == false)
     {
         return false;
     }
+
+    if (cuantasRunas(hechizo) == false)
+    {
+        return false;
+    }
+    if (adyacenciaDeRunas(hechizo, matriz) == false)
+    {
+        return false;
+    }
+    return true;
 }
 
 int main()
@@ -484,14 +582,14 @@ int main()
         }
         Hechizo *hechizo1 = new Hechizo(i + 1, hechizo.nombreMago, hechizo.numVertices, hechizo.tiposVertices, hechizo.numAristas, hechizo.arrAristas);
         // hechizo1->print();
-         int **matriz = matrizAdyacencia(hechizo1);
-        int validacionA = cuantasRunas(hechizo1);
+        int **matriz = matrizAdyacencia(hechizo1);
+        bool validacionA = cicloMasLargo(hechizo1,matriz);
         cout << validacionA;
         for (int i = 0; i < hechizo.numVertices; i++)
         {
-             delete[] matriz[i]; // Libera cada fila
+            delete[] matriz[i]; // Libera cada fila
         }
-         delete[] matriz;
+        delete[] matriz;
         //  Liberar la instancia del Hechizo (que a su vez libera el arreglo de vértices)
         delete hechizo1;
 
