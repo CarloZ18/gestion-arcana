@@ -621,9 +621,11 @@ bool legalidad(Hechizo *hechizo, int **matriz)
 //Regla 7
 void esSospechozo(Hechizo* hechizo, int **matriz){
     string nombreH= hechizo->obtenerHechicero().obtenernombre();
+    cout<<nombreH<<endl;
     nodoHechizero*nodo=buscarOAgregarHechicero(nombreH);
     if(legalidad(hechizo, matriz)==false){
         nodo->cantHIlegales++;
+        cout<<nodo->cantHIlegales<<endl;
     }
     if(nodo->cantHIlegales>=3){
         ofstream archivo2("underInvestigation.in", ios::app);
@@ -735,6 +737,15 @@ int main()
     delete[] hechizo.arrAristas;
 
     liberarLista(listaHechizeros);
+
+    //salida
+
+    ofstream archivo3 ("processedSpell.out");
+    if(archivo3.is_open()){
+        archivo3<<"Hechizos Legales"<<endl;
+        archivo3<<"Hechizos Ilegales"<<endl;
+        archivo3.close();
+    }
 
 
 
