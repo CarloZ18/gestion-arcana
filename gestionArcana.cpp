@@ -36,6 +36,16 @@ enum class TipoAsociado : char
     F = 'F', // Runa de estabilidad
 };
 
+struct nodoHechizero{
+    string nombre;
+    int cantHIlegales;
+    nodoHechizero*next=nullptr;
+
+};
+
+nodoHechizero*listaHechizeros=nullptr;
+
+
 class Arista
 {
     int origen;
@@ -555,6 +565,34 @@ int cicloMasLargo(Hechizo *hechizo, int **matriz)
     return maxCicloGlobal;
 }
 
+nodoHechizero* buscarOAgregarHechicero(const std::string& nombre) {
+    nodoHechizero* actual = listaHechizeros;
+    nodoHechizero* anterior = nullptr;
+
+    // Buscar el hechicero en la lista
+    while (actual != nullptr) {
+        if (actual->nombre == nombre) {
+            return actual; // Si lo encuentra, retorna el nodo
+        }
+        anterior = actual;
+        actual = actual->next;
+    }
+
+    // Si no está en la lista, agregar un nuevo nodo
+    nodoHechizero* nuevo = new nodoHechizero;
+    nuevo->nombre = nombre;
+    nuevo->cantHIlegales = 0;
+    nuevo->next = nullptr;
+
+    if (anterior == nullptr) { // Lista vacía
+        listaHechizeros = nuevo;
+    } else { // Añadir al final de la lista
+        anterior->next = nuevo;
+    }
+
+    return nuevo;
+}
+
 
 
 
@@ -583,16 +621,14 @@ bool legalidad(Hechizo *hechizo, int **matriz)
 //Regla 7
 void esSospechozo(Hechizo* hechizo, int **matriz){
     string nombreH= hechizo->obtenerHechicero().obtenernombre();
-    Hechizero hechizero;
-    hechizero=Hechizero(nombreH);
+    nodoHechizero*nodo=buscarOAgregarHechicero(nombreH);
     if(legalidad(hechizo, matriz)==false){
-        hechizero.modCantIlegales(hechizero.obtenercantHIlegales()+1);
+        nodo->cantHIlegales++;
     }
-    int totalHechizosIlegales=hechizero.obtenercantHIlegales();
-    if(totalHechizosIlegales>=3){
+    if(nodo->cantHIlegales>=3){
         ofstream archivo2("underInvestigation.in", ios::app);
         if(archivo2.is_open()){
-            archivo2<<nombreH<<endl;
+            archivo2<<nodo->nombre<<endl;
             archivo2.close();
             
         }
@@ -603,6 +639,14 @@ void esSospechozo(Hechizo* hechizo, int **matriz){
 
     
 }
+void liberarLista(nodoHechizero* &listaHechizeros) {
+    while (listaHechizeros != nullptr) {
+        nodoHechizero* temp = listaHechizeros; 
+        listaHechizeros = listaHechizeros->next; 
+        delete temp; 
+    }
+}
+
 
  
 
@@ -642,7 +686,7 @@ int main()
         int **matriz = matrizAdyacencia(hechizo1);
         bool validacionA = cicloMasLargo(hechizo1,matriz);
         cout << validacionA;
-        //cout<<esSospechozo(hechizo1,matriz);
+        esSospechozo(hechizo1,matriz);
         for (int i = 0; i < hechizo.numVertices; i++)
         {
             delete[] matriz[i]; // Libera cada fila
@@ -689,6 +733,8 @@ int main()
     }
     // Liberar el arreglo de punteros
     delete[] hechizo.arrAristas;
+
+    liberarLista(listaHechizeros);
 
 
 
