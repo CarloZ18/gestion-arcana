@@ -196,9 +196,34 @@ public:
     Arista *imprimirAristas() { aristasAsociadas.print(); }
 };
 
+class Hechizero{
+    string nombre;
+    int cantHechizosIlegales;
+    public:
+    Hechizero(){};
+    Hechizero( string nombre){
+        this->nombre=nombre;
+        this->cantHechizosIlegales=0;
+    }
+    
+    int obtenercantHIlegales(){
+        return this->cantHechizosIlegales;
+    }
+
+    void modCantIlegales(int cantHechizosIlegales){
+        this->cantHechizosIlegales=cantHechizosIlegales;
+
+    }
+    string obtenernombre(){
+        return this->nombre;
+    }
+
+};
+
+
 class Hechizo
 {
-    string hechicero;
+    Hechizero hechicero;
     Vertice *vertice;
     int IDHechizo;
     int numVertices;
@@ -245,7 +270,7 @@ public:
         return this->IDHechizo;
     }
 
-    string obtenerHechicero()
+    Hechizero obtenerHechicero()
     {
         return this->hechicero;
     }
@@ -277,7 +302,7 @@ public:
 
     void print()
     {
-        cout << "Hechicero: " << hechicero << "\n";
+        cout << "Hechicero: " <<hechicero.obtenernombre()<< "\n";
         for (int i = 0; i < numVertices; ++i)
         {
             cout << "Vertice " << vertice[i].obtenerIndice() << " -> ";
@@ -287,6 +312,9 @@ public:
         }
     }
 };
+
+
+
 
 int **matrizAdyacencia(Hechizo *hechizo)
 {
@@ -326,7 +354,7 @@ int **matrizAdyacencia(Hechizo *hechizo)
 
     // Imprimir
     cout << "Hechizo: " << hechizo->obtenerID() << endl;
-    cout << "Hechicero: " << hechizo->obtenerHechicero() << endl;
+    cout << "Hechicero: " << hechizo->obtenerHechicero().obtenernombre() << endl;
     cout << "  ";
     for (int i = 0; i < numVertices; i++)
     {
@@ -527,6 +555,9 @@ int cicloMasLargo(Hechizo *hechizo, int **matriz)
     return maxCicloGlobal;
 }
 
+
+
+
 bool legalidad(Hechizo *hechizo, int **matriz)
 {
     int contadorIlegalidad;
@@ -549,6 +580,32 @@ bool legalidad(Hechizo *hechizo, int **matriz)
     }
     return true;
 }
+//Regla 7
+void esSospechozo(Hechizo* hechizo, int **matriz){
+    string nombreH= hechizo->obtenerHechicero().obtenernombre();
+    Hechizero hechizero;
+    hechizero=Hechizero(nombreH);
+    if(legalidad(hechizo, matriz)==false){
+        hechizero.modCantIlegales(hechizero.obtenercantHIlegales()+1);
+    }
+    int totalHechizosIlegales=hechizero.obtenercantHIlegales();
+    if(totalHechizosIlegales>=3){
+        ofstream archivo2("underInvestigation.in", ios::app);
+        if(archivo2.is_open()){
+            archivo2<<nombreH<<endl;
+            archivo2.close();
+            
+        }
+    }
+    
+
+    
+
+    
+}
+
+ 
+
 
 int main()
 {
@@ -585,6 +642,7 @@ int main()
         int **matriz = matrizAdyacencia(hechizo1);
         bool validacionA = cicloMasLargo(hechizo1,matriz);
         cout << validacionA;
+        //cout<<esSospechozo(hechizo1,matriz);
         for (int i = 0; i < hechizo.numVertices; i++)
         {
             delete[] matriz[i]; // Libera cada fila
@@ -631,6 +689,8 @@ int main()
     }
     // Liberar el arreglo de punteros
     delete[] hechizo.arrAristas;
+
+
 
     return 0;
 }
