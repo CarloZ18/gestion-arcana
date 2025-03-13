@@ -196,10 +196,41 @@ public:
     Arista *imprimirAristas() { aristasAsociadas.print(); }
 };
 
+class Hechicero
+{
+    string nombreCompleto;
+    string nombre;
+    string apellido;
+    int hechizosIlegales;
+
+public:
+    Hechicero() {} // Default constructor
+
+    Hechicero(string nombreCompleto)
+    {
+        size_t pos = nombreCompleto.find(' ');
+        this->nombreCompleto = nombreCompleto;
+        this->nombre = nombreCompleto.substr(0, pos);
+        this->apellido = nombreCompleto.substr(pos + 1);
+    }
+
+    string obtenerApellido()
+    {
+        return this->apellido;
+    }
+
+    string obtenerNombreCompleto()
+    {
+        return this->nombreCompleto;
+    }
+};
+
 class Hechizo
 {
-    string hechicero;
+    Hechicero hechicero;
+    string nombre;
     Vertice *vertice;
+    char runaElemental;
     int IDHechizo;
     int numVertices;
     int numAristas;
@@ -207,9 +238,10 @@ class Hechizo
 
 public:
     // Se crea el grafo con un número determinado de vértices.
-    Hechizo(int IDHechizo, string hechicero, int numVertices, string cadenaDeTipos, int numAristas, int **aristas)
+    Hechizo(int IDHechizo, Hechicero hechicero, int numVertices, string cadenaDeTipos, int numAristas, int **aristas)
     {
         this->cadenaTipos = cadenaDeTipos;
+        this->runaElemental = ' ';
         this->IDHechizo = IDHechizo;
         this->numVertices = numVertices;
         this->hechicero = hechicero;
@@ -240,12 +272,22 @@ public:
         }
     }
 
+    void setNombre(string nombre)
+    {
+        this->nombre = nombre;
+    }
+
+    string obtenerNombre()
+    {
+        return this->nombre;
+    }
+
     int obtenerID()
     {
         return this->IDHechizo;
     }
 
-    string obtenerHechicero()
+    Hechicero obtenerHechicero()
     {
         return this->hechicero;
     }
@@ -253,6 +295,16 @@ public:
     Vertice *obtenerVertices()
     {
         return vertice;
+    }
+
+    char obtenerRunaElemental()
+    {
+        return this->runaElemental;
+    }
+
+    void setRunaElemental(char runaElemental)
+    {
+        this->runaElemental = runaElemental;
     }
 
     int obtenerNumVertices() const
@@ -277,7 +329,7 @@ public:
 
     void print()
     {
-        cout << "Hechicero: " << hechicero << "\n";
+        cout << "Hechicero: " << hechicero.obtenerNombreCompleto() << "\n";
         for (int i = 0; i < numVertices; ++i)
         {
             cout << "Vertice " << vertice[i].obtenerIndice() << " -> ";
@@ -326,7 +378,7 @@ int **matrizAdyacencia(Hechizo *hechizo)
 
     // Imprimir
     cout << "Hechizo: " << hechizo->obtenerID() << endl;
-    cout << "Hechicero: " << hechizo->obtenerHechicero() << endl;
+    cout << "Hechicero: " << hechizo->obtenerHechicero().obtenerNombreCompleto() << endl;
     cout << "  ";
     for (int i = 0; i < numVertices; i++)
     {
@@ -392,7 +444,7 @@ bool cuantasRunas(Hechizo *hechizo)
         {
         case 'I':
         {
-
+            hechizo->setRunaElemental(c);
             contadorI++;
             if (contadorI > 3 || (contadorI > 0 && (contadorQ + contadorT + contadorV + contadorL + contadorO) > 0))
             {
@@ -403,6 +455,7 @@ bool cuantasRunas(Hechizo *hechizo)
         }
         case 'Q':
         {
+            hechizo->setRunaElemental(c);
             contadorQ++;
             if (contadorQ > 3 || (contadorQ > 0 && (contadorI + contadorT + contadorV + contadorL + contadorO) > 0))
             {
@@ -412,6 +465,7 @@ bool cuantasRunas(Hechizo *hechizo)
         }
         case 'T':
         {
+            hechizo->setRunaElemental(c);
             contadorT++;
             if (contadorT > 3 || (contadorT > 0 && (contadorQ + contadorI + contadorV + contadorL + contadorO) > 0))
             {
@@ -421,6 +475,7 @@ bool cuantasRunas(Hechizo *hechizo)
         }
         case 'V':
         {
+            hechizo->setRunaElemental(c);
             contadorV++;
             if (contadorV > 3 || (contadorV > 0 && (contadorQ + contadorT + contadorI + contadorL + contadorO) > 0))
             {
@@ -430,6 +485,7 @@ bool cuantasRunas(Hechizo *hechizo)
         }
         case 'L':
         {
+            hechizo->setRunaElemental(c);
             contadorL++;
             if (contadorL > 3 || (contadorL > 0 && (contadorQ + contadorT + contadorV + contadorI + contadorO) > 0))
             {
@@ -439,6 +495,7 @@ bool cuantasRunas(Hechizo *hechizo)
         }
         case 'O':
         {
+            hechizo->setRunaElemental(c);
             contadorO++;
             if (contadorO > 3 || (contadorO > 0 && (contadorQ + contadorT + contadorV + contadorL + contadorI) > 0))
             {
@@ -467,52 +524,58 @@ bool adyacenciaDeRunas(Hechizo *hechizo, int **matriz)
     }
     return true;
 }
- 
+
+// Función que recorre el grafo en búsqueda de ciclos.
+// Retorna el número de aristas del ciclo más largo encontrado o -1 si no hay ciclos.
 int cicloDfs(int **matriz, int numVertices, int inicio, int actual, bool *visitado, int cuenta)
-{int maxCiclo = 0;
-    // Si no se encuentra ciclo se devuelve -1
+{
+    int maxCiclo = -1; // Inicia en -1 para indicar que, si no se encuentra ciclo, se retorna -1 <sup data-citation="1" className="inline select-none [&>a]:rounded-2xl [&>a]:border [&>a]:px-1.5 [&>a]:py-0.5 [&>a]:transition-colors shadow [&>a]:bg-ds-bg-subtle [&>a]:text-xs [&>svg]:w-4 [&>svg]:h-4 relative -top-[2px] citation-shimmer"><a href="https://www.techiedelight.com/es/depth-first-search/">1</a></sup><sup data-citation="6" className="inline select-none [&>a]:rounded-2xl [&>a]:border [&>a]:px-1.5 [&>a]:py-0.5 [&>a]:transition-colors shadow [&>a]:bg-ds-bg-subtle [&>a]:text-xs [&>svg]:w-4 [&>svg]:h-4 relative -top-[2px] citation-shimmer"><a href="https://trspos.com/dfs-complejidad-del-tiempo/">6</a></sup>.
+
+    // Recorrer todos los posibles vecinos
     for (int vecino = 0; vecino < numVertices; vecino++)
     {
         // Si existe una arista del vértice actual al vecino
         if (matriz[actual][vecino] != 0)
         {
-            // Si se regresa al vértice de inicio (y se ha recorrido al menos 1 arista)
+            // Si se regresa al vértice de inicio y se ha recorrido al menos 1 arista
             if (vecino == inicio && cuenta >= 1)
             {
-                int cicloActual = cuenta + 1; // Se cuenta la arista de cierre
-                if (cicloActual > maxCiclo) {
+                int cicloActual = cuenta + 1; // Contamos la arista final que cierra el ciclo
+                if (cicloActual > maxCiclo)
+                {
                     maxCiclo = cicloActual;
                 }
             }
-            // Si el vecino no se ha visitado aún, continuamos la búsqueda
+            // Si el vecino no ha sido visitado, continuar la búsqueda recursivamente
             else if (!visitado[vecino])
             {
-    
                 visitado[vecino] = true;
                 int cicloEncontrado = cicloDfs(matriz, numVertices, inicio, vecino, visitado, cuenta + 1);
                 if (cicloEncontrado > maxCiclo)
                 {
                     maxCiclo = cicloEncontrado;
                 }
-                visitado[vecino] = false;
+                visitado[vecino] = false; // Backtracking para explorar otras rutas
             }
         }
     }
-
     return maxCiclo;
 }
+
 // Regla 5
 int cicloMasLargo(Hechizo *hechizo, int **matriz)
 {
     int numVertices = hechizo->obtenerNumVertices();
-    int maxCicloGlobal = 0;
-    // Crear arreglo "visitado" de tamaño n
+    int maxCicloGlobal = 0; // Inicialmente no se ha encontrado ningún ciclo
+
+    // Crear y inicializar arreglo visitado para todos los vértices
     bool *visitado = new bool[numVertices];
     for (int i = 0; i < numVertices; i++)
     {
         visitado[i] = false;
     }
-    // Probar con cada vértice como punto de inicio
+
+    // Probar cada vértice como punto de inicio
     for (int i = 0; i < numVertices; i++)
     {
         visitado[i] = true;
@@ -523,13 +586,127 @@ int cicloMasLargo(Hechizo *hechizo, int **matriz)
         }
         visitado[i] = false;
     }
+
     delete[] visitado;
     return maxCicloGlobal;
 }
 
+bool detectarHechizoArcante(Hechizo *hechizo)
+{
+    string tipos = hechizo->obtenerTiposVertices();
+    for (int i = 0; i < hechizo->obtenerNumVertices(); i++)
+    {
+        if (tipos[i] == 'I' || tipos[i] == 'Q' || tipos[i] == 'T' || tipos[i] == 'V' || tipos[i] == 'L' || tipos[i] == 'O' || tipos[i] == 'D' || tipos[i] == 'F')
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
+void dfsCaminoPesado(int **matriz, int numVertices, int actual, bool *visitado, int acumulado, const string &tipos, int &maxPeso)
+{
+    for (int v = 0; v < numVertices; v++)
+    {
+        // Si existe arista de 'actual' a 'v' y el vértice 'v' no ha sido visitado
+        if (matriz[actual][v] != 0 && !visitado[v])
+        {
+            int nuevoPeso = acumulado + matriz[actual][v];
+            // Si el vértice 'v' es un endpoint (runa catalítica o de estabilidad: 'D' o 'F')
+            if (tipos[v] == 'D' || tipos[v] == 'F')
+            {
+                if (nuevoPeso > maxPeso)
+                {
+                    maxPeso = nuevoPeso;
+                }
+            }
+            visitado[v] = true;
+            dfsCaminoPesado(matriz, numVertices, v, visitado, nuevoPeso, tipos, maxPeso);
+            visitado[v] = false; // Backtracking
+        }
+    }
+}
+
+string caminoMasPesado(Hechizo *hechizo, int **matriz)
+{
+    int numVertices = hechizo->obtenerNumVertices();
+    string tipos = hechizo->obtenerTiposVertices();
+    int maxPeso = 0;
+
+    if (!detectarHechizoArcante(hechizo))
+    {
+
+        return "Arcante";
+    }
+    else
+    {
+        // Crear arreglo dinámico para marcar visitados.
+        bool *visitado = new bool[numVertices];
+        for (int i = 0; i < numVertices; i++)
+        {
+            visitado[i] = false;
+        }
+
+        // Probar cada vértice como punto de partida si es 'A' (punto de confluencia).
+        for (int i = 0; i < numVertices; i++)
+        {
+            if (tipos[i] == 'A' || tipos[i] == 'a')
+            {
+                visitado[i] = true;
+                dfsCaminoPesado(matriz, numVertices, i, visitado, 0, tipos, maxPeso);
+                visitado[i] = false;
+            }
+        }
+
+        delete[] visitado;
+        if (maxPeso > cicloMasLargo(hechizo, matriz))
+        {
+            return "modicum ";
+        }
+        else if (maxPeso < cicloMasLargo(hechizo, matriz))
+        {
+            return "maximus ";
+        }
+    }
+}
+
+// Regla 8
+string nombramientoDeHechizo(Hechizo *hechizo, int **matriz)
+{
+    string nombreHechizo = "";
+    string apellidoHechicero = hechizo->obtenerHechicero().obtenerApellido();
+    char ultimo = apellidoHechicero[apellidoHechicero.size() - 1];
+    char runa = hechizo->obtenerRunaElemental();
+    string sufijo;
+    if (runa == 'I')
+        nombreHechizo = "Ignatum";
+    else if (runa == 'Q')
+        nombreHechizo = "Aquos";
+    else if (runa == 'T')
+        nombreHechizo = "Terraminium";
+    else if (runa == 'V')
+        nombreHechizo = "Ventus";
+    else if (runa == 'L')
+        nombreHechizo = "Lux";
+    else if (runa == 'O')
+        nombreHechizo = "Tenebrae";
+
+    if (ultimo == 'a' || ultimo == 'e' || ultimo == 'i' || ultimo == 'o' || ultimo == 'u')
+        sufijo = apellidoHechicero.substr(0, apellidoHechicero.size() - 1) + "ium";
+    else
+        sufijo = apellidoHechicero + "um";
+
+    string indicador = caminoMasPesado(hechizo, matriz);
+
+    return nombreHechizo + " " + sufijo + " " + indicador;
+};
+
 bool legalidad(Hechizo *hechizo, int **matriz)
 {
-    int contadorIlegalidad;
+    if (cuantasRunas(hechizo) == false)
+    {
+        return false;
+    }
     if (cuantasA(hechizo) == false)
     {
         return false;
@@ -539,11 +716,12 @@ bool legalidad(Hechizo *hechizo, int **matriz)
         return false;
     }
 
-    if (cuantasRunas(hechizo) == false)
+    if (adyacenciaDeRunas(hechizo, matriz) == false)
     {
         return false;
     }
-    if (adyacenciaDeRunas(hechizo, matriz) == false)
+
+    if (cicloMasLargo(hechizo, matriz) % 2 != 0)
     {
         return false;
     }
@@ -583,8 +761,11 @@ int main()
         Hechizo *hechizo1 = new Hechizo(i + 1, hechizo.nombreMago, hechizo.numVertices, hechizo.tiposVertices, hechizo.numAristas, hechizo.arrAristas);
         // hechizo1->print();
         int **matriz = matrizAdyacencia(hechizo1);
-        bool validacionA = cicloMasLargo(hechizo1,matriz);
-        cout << validacionA;
+        
+        legalidad(hechizo1, matriz);
+        cout << nombramientoDeHechizo(hechizo1, matriz) << endl;
+        hechizo1->setNombre(nombramientoDeHechizo(hechizo1,matriz));
+        
         for (int i = 0; i < hechizo.numVertices; i++)
         {
             delete[] matriz[i]; // Libera cada fila
