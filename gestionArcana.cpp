@@ -761,11 +761,11 @@ int main()
         Hechizo *hechizo1 = new Hechizo(i + 1, hechizo.nombreMago, hechizo.numVertices, hechizo.tiposVertices, hechizo.numAristas, hechizo.arrAristas);
         // hechizo1->print();
         int **matriz = matrizAdyacencia(hechizo1);
-        
+
         legalidad(hechizo1, matriz);
         cout << nombramientoDeHechizo(hechizo1, matriz) << endl;
-        hechizo1->setNombre(nombramientoDeHechizo(hechizo1,matriz));
-        
+        hechizo1->setNombre(nombramientoDeHechizo(hechizo1, matriz));
+
         for (int i = 0; i < hechizo.numVertices; i++)
         {
             delete[] matriz[i]; // Libera cada fila
