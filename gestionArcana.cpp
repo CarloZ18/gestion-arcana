@@ -26,7 +26,7 @@ enum class TipoAsociado : char
 {
     A = 'A', // Punto de confluencia
     B = 'B', // Punto de soporte energético
-    I = 'I', // Fuego
+    I = 'I', // Fuegos
     Q = 'Q', // Agua
     T = 'T', // Tierra
     V = 'V', // Viento
@@ -44,6 +44,13 @@ struct nodoHechizero{
 };
 
 nodoHechizero*listaHechizeros=nullptr;
+
+struct nodoHechizo{
+    string nombreDelHechizo;
+    string nombreDelHechicero;
+    nodoHechizo*next=nullptr;
+};
+
 
 
 class Arista
@@ -101,8 +108,8 @@ struct Nodo
     string nombre;
     Nodo *next;
 };
-
-class ListE
+template <typename t >
+class ListE 
 {
     Arista *ptr_principal;
     int size;
@@ -174,7 +181,7 @@ public:
 
 class Vertice
 {
-    ListE aristasAsociadas;
+    ListE<Arista> aristasAsociadas;
     TipoAsociado tipoAsociado;
     int indice;
 
@@ -240,6 +247,8 @@ class Hechizo
     Hechicero hechicero;
     string nombre;
     Vertice *vertice;
+    ListE<Hechizo> hechizosLegales;
+    ListE<Hechizo> hechizosIlegales;
     char runaElemental;
     int IDHechizo;
     int numVertices;
@@ -822,6 +831,28 @@ void liberarLista(nodoHechizero* &listaHechizeros) {
     }
 }
 
+//salida
+void escribirEnArchivo1(nodoHechizo* lista1, nodoHechizo* lista2){
+    ofstream archivo3 ("processedSpell.out");
+    if(archivo3.is_open()){
+        archivo3<<"Hechizos Legales"<<endl;
+        nodoHechizo*aux=lista1;
+        while(aux!=nullptr){
+            archivo3<<aux->nombreDelHechizo<<' '<<aux->nombreDelHechicero<<endl;
+            aux=aux->next;
+        }
+
+        archivo3<<"Hechizos Ilegales"<<endl;
+        nodoHechizo*aux2=lista2;
+        while(aux2!=nullptr){
+            archivo3<<aux2->nombreDelHechizo<<' '<<aux2->nombreDelHechicero<<endl;
+            aux2=aux2->next;
+        }
+
+        archivo3.close();
+    }
+
+}
 
  
 
@@ -914,14 +945,9 @@ int main()
 
     liberarLista(listaHechizeros);
 
-    //salida
+    
 
-    ofstream archivo3 ("processedSpell.out");
-    if(archivo3.is_open()){
-        archivo3<<"Hechizos Legales"<<endl;
-        archivo3<<"Hechizos Ilegales"<<endl;
-        archivo3.close();
-    }
+    
 
 
 
