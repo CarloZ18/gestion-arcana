@@ -564,7 +564,14 @@ bool adyacenciaDeRunas(Hechizo *hechizo, int **matriz)
     {
         for (int j = 0; j < numVertices; j++)
         {
-            if (matriz[i][j] != 0 && (hechizo->obtenerTiposVertices()[j] == 'T' || 'I' || 'Q' || 'V' || 'L' || 'O' && hechizo->obtenerTiposVertices()[i] == 'D'))
+            if (matriz[i][j] != 0 && 
+                (hechizo->obtenerTiposVertices()[j] == 'T' || 
+                 hechizo->obtenerTiposVertices()[j] == 'I' ||
+                 hechizo->obtenerTiposVertices()[j] == 'Q' ||
+                 hechizo->obtenerTiposVertices()[j] == 'V' ||
+                 hechizo->obtenerTiposVertices()[j] == 'L' ||
+                 hechizo->obtenerTiposVertices()[j] == 'O') &&
+                hechizo->obtenerTiposVertices()[i] == 'D')
             {
                 return false;
             }
@@ -639,34 +646,44 @@ int cicloMasLargo(Hechizo *hechizo, int **matriz)
     return maxCicloGlobal;
 }
 
-nodoHechizero *buscarOAgregarHechicero(const std::string &nombre)
-{
-    nodoHechizero *actual = listaHechizeros;
-    nodoHechizero *anterior = nullptr;
+string normalizarNombre(const string& nombre) {
+    string nombreNormalizado;
+    for (char c : nombre) {
+        // Eliminar espacios y convertir a minúsculas manualmente
+        if (c != ' ') { // Ignorar espacios
+            // Convertir a minúscula (A-Z → a-z)
+            if (c >= 'A' && c <= 'Z') {
+                c = c + 32; // Diferencia ASCII entre mayúsculas y minúsculas
+            }
+            nombreNormalizado += c;
+        }
+    }
+    return nombreNormalizado;
+}
 
-    // Buscar el hechicero en la lista
-    while (actual != nullptr)
-    {
-        if (actual->nombre == nombre)
-        {
-            return actual; // Si lo encuentra, retorna el nodo
+nodoHechizero* buscarOAgregarHechicero(const string& nombre) {
+    string nombreBuscado = normalizarNombre(nombre);
+    nodoHechizero* actual = listaHechizeros;
+    nodoHechizero* anterior = nullptr;
+
+    while (actual != nullptr) {
+        string nombreActual = normalizarNombre(actual->nombre);
+        if (nombreActual == nombreBuscado) {
+            return actual; // Nodo existente
         }
         anterior = actual;
         actual = actual->next;
     }
 
-    // Si no está en la lista, agregar un nuevo nodo
-    nodoHechizero *nuevo = new nodoHechizero;
-    nuevo->nombre = nombre;
+    // Crear nuevo nodo
+    nodoHechizero* nuevo = new nodoHechizero;
+    nuevo->nombre = nombre; // Nombre original (con espacios)
     nuevo->cantHIlegales = 0;
     nuevo->next = nullptr;
 
-    if (anterior == nullptr)
-    { // Lista vacía
+    if (anterior == nullptr) {
         listaHechizeros = nuevo;
-    }
-    else
-    { // Añadir al final de la lista
+    } else {
         anterior->next = nuevo;
     }
 
@@ -777,65 +794,31 @@ bool legalidad(Hechizo *hechizo, int **matriz)
     }
     return true;
 }
-// Regla 6
-
 // Regla 7
-void esSospechozo(Hechizo *hechizo, int **matriz)
-{
+void esSospechozo(Hechizo* hechizo, int **matriz) {
     string nombreH = hechizo->obtenerHechicero().obtenerNombreCompleto();
-    nodoHechizero *nodo = buscarOAgregarHechicero(nombreH);
-    if (legalidad(hechizo, matriz) == false)
-    {
-        nodo->cantHIlegales++;
-    }
-    if (nodo->cantHIlegales >= 3)
-    {
-        ofstream archivo2("underInvestigation.in", ios::app);
-        if (archivo2.is_open())
-        {
-            archivo2 << nodo->nombre << endl;
-            archivo2.close();
+    nodoHechizero* nodo = buscarOAgregarHechicero(nombreH);
+    
+    if (!legalidad(hechizo, matriz)) {
+        // Guardar el valor actual ANTES de incrementar
+        int cuentaAnterior = nodo->cantHIlegales;
+        nodo->cantHIlegales++; // Incrementar solo una vez
+
+        // Escribir solo cuando se alcanza 3
+        if (cuentaAnterior == 2) { // Ahora es 3
+            ofstream archivo2("underInvestigation.in", ios::app);
+            if (archivo2.is_open()) {
+                archivo2 << nodo->nombre << endl;
+                archivo2.close();
+            }
         }
     }
 }
-// Regla 8
-string nombramientoDeHechizo(Hechizo *hechizo, int **matriz)
-{
-    string nombreHechizo = "";
-    string apellidoHechicero = hechizo->obtenerHechicero().obtenerApellido();
-    char ultimo = apellidoHechicero[apellidoHechicero.size() - 1];
-    char runa = hechizo->obtenerRunaElemental();
-    string sufijo;
-    if (runa == 'I')
-        nombreHechizo = "Ignatum";
-    else if (runa == 'Q')
-        nombreHechizo = "Aquos";
-    else if (runa == 'T')
-        nombreHechizo = "Terraminium";
-    else if (runa == 'V')
-        nombreHechizo = "Ventus";
-    else if (runa == 'L')
-        nombreHechizo = "Lux";
-    else if (runa == 'O')
-        nombreHechizo = "Tenebrae";
-
-    if (ultimo == 'a' || ultimo == 'e' || ultimo == 'i' || ultimo == 'o' || ultimo == 'u')
-        sufijo = apellidoHechicero.substr(0, apellidoHechicero.size() - 1) + "ium";
-    else
-        sufijo = apellidoHechicero + "um";
-
-    string indicador = caminoMasPesado(hechizo, matriz);
-
-    return nombreHechizo + " " + sufijo + " " + indicador;
-};
-
-void liberarLista(nodoHechizero *&listaHechizeros)
-{
-    while (listaHechizeros != nullptr)
-    {
-        nodoHechizero *temp = listaHechizeros;
-        listaHechizeros = listaHechizeros->next;
-        delete temp;
+void liberarLista(nodoHechizero* &listaHechizeros) {
+    while (listaHechizeros != nullptr) {
+        nodoHechizero* temp = listaHechizeros; 
+        listaHechizeros = listaHechizeros->next; 
+        delete temp; 
     }
 }
 
@@ -876,6 +859,7 @@ int main()
         Hechizo *hechizo1 = new Hechizo(i + 1, hechizo.nombreMago, hechizo.numVertices, hechizo.tiposVertices, hechizo.numAristas, hechizo.arrAristas);
         // hechizo1->print();
         int **matriz = matrizAdyacencia(hechizo1);
+        esSospechozo(hechizo1, matriz);
 
         legalidad(hechizo1, matriz);
         cout << nombramientoDeHechizo(hechizo1, matriz) << endl;
@@ -932,6 +916,17 @@ int main()
     delete[] hechizo.arrAristas;
 
     liberarLista(listaHechizeros);
+
+    //salida
+
+    ofstream archivo3 ("processedSpell.out");
+    if(archivo3.is_open()){
+        archivo3<<"Hechizos Legales"<<endl;
+        archivo3<<"Hechizos Ilegales"<<endl;
+        archivo3.close();
+    }
+
+
 
     return 0;
 }
