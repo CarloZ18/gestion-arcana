@@ -881,6 +881,9 @@ int main()
         cout << nombramientoDeHechizo(hechizo1, matriz) << endl;
         hechizo1->setNombre(nombramientoDeHechizo(hechizo1, matriz));
 
+        if(!legalidad){
+
+        }
         for (int i = 0; i < hechizo.numVertices; i++)
         {
             delete[] matriz[i]; // Libera cada fila
