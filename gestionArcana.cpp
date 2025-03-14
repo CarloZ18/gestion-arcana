@@ -529,7 +529,14 @@ bool adyacenciaDeRunas(Hechizo *hechizo, int **matriz)
     {
         for (int j = 0; j < numVertices; j++)
         {
-            if (matriz[i][j] != 0 && (hechizo->obtenerTiposVertices()[j] == 'T' || 'I' || 'Q' || 'V' || 'L' || 'O' && hechizo->obtenerTiposVertices()[i] == 'D'))
+            if (matriz[i][j] != 0 && 
+                (hechizo->obtenerTiposVertices()[j] == 'T' || 
+                 hechizo->obtenerTiposVertices()[j] == 'I' ||
+                 hechizo->obtenerTiposVertices()[j] == 'Q' ||
+                 hechizo->obtenerTiposVertices()[j] == 'V' ||
+                 hechizo->obtenerTiposVertices()[j] == 'L' ||
+                 hechizo->obtenerTiposVertices()[j] == 'O') &&
+                hechizo->obtenerTiposVertices()[i] == 'D')
             {
                 return false;
             }
@@ -604,28 +611,44 @@ int cicloMasLargo(Hechizo *hechizo, int **matriz)
     return maxCicloGlobal;
 }
 
-nodoHechizero* buscarOAgregarHechicero(const std::string& nombre) {
+string normalizarNombre(const string& nombre) {
+    string nombreNormalizado;
+    for (char c : nombre) {
+        // Eliminar espacios y convertir a minúsculas manualmente
+        if (c != ' ') { // Ignorar espacios
+            // Convertir a minúscula (A-Z → a-z)
+            if (c >= 'A' && c <= 'Z') {
+                c = c + 32; // Diferencia ASCII entre mayúsculas y minúsculas
+            }
+            nombreNormalizado += c;
+        }
+    }
+    return nombreNormalizado;
+}
+
+nodoHechizero* buscarOAgregarHechicero(const string& nombre) {
+    string nombreBuscado = normalizarNombre(nombre);
     nodoHechizero* actual = listaHechizeros;
     nodoHechizero* anterior = nullptr;
 
-    // Buscar el hechicero en la lista
     while (actual != nullptr) {
-        if (actual->nombre == nombre) {
-            return actual; // Si lo encuentra, retorna el nodo
+        string nombreActual = normalizarNombre(actual->nombre);
+        if (nombreActual == nombreBuscado) {
+            return actual; // Nodo existente
         }
         anterior = actual;
         actual = actual->next;
     }
 
-    // Si no está en la lista, agregar un nuevo nodo
+    // Crear nuevo nodo
     nodoHechizero* nuevo = new nodoHechizero;
-    nuevo->nombre = nombre;
+    nuevo->nombre = nombre; // Nombre original (con espacios)
     nuevo->cantHIlegales = 0;
     nuevo->next = nullptr;
 
-    if (anterior == nullptr) { // Lista vacía
+    if (anterior == nullptr) {
         listaHechizeros = nuevo;
-    } else { // Añadir al final de la lista
+    } else {
         anterior->next = nuevo;
     }
 
@@ -771,27 +794,25 @@ bool legalidad(Hechizo *hechizo, int **matriz)
     }
     return true;
 }
-//Regla 7
-void esSospechozo(Hechizo* hechizo, int **matriz){
-    string nombreH= hechizo->obtenerHechicero().obtenerNombreCompleto();
-    nodoHechizero*nodo=buscarOAgregarHechicero(nombreH);
-    if(legalidad(hechizo, matriz)==false){
-        nodo->cantHIlegales++;
-        cout<<nodo->cantHIlegales<<endl;
-    }
-    if(nodo->cantHIlegales>=3){
-        ofstream archivo2("underInvestigation.in", ios::app);
-        if(archivo2.is_open()){
-            archivo2<<nodo->nombre<<endl;
-            archivo2.close();
-            
+// Regla 7
+void esSospechozo(Hechizo* hechizo, int **matriz) {
+    string nombreH = hechizo->obtenerHechicero().obtenerNombreCompleto();
+    nodoHechizero* nodo = buscarOAgregarHechicero(nombreH);
+    
+    if (!legalidad(hechizo, matriz)) {
+        // Guardar el valor actual ANTES de incrementar
+        int cuentaAnterior = nodo->cantHIlegales;
+        nodo->cantHIlegales++; // Incrementar solo una vez
+
+        // Escribir solo cuando se alcanza 3
+        if (cuentaAnterior == 2) { // Ahora es 3
+            ofstream archivo2("underInvestigation.in", ios::app);
+            if (archivo2.is_open()) {
+                archivo2 << nodo->nombre << endl;
+                archivo2.close();
+            }
         }
     }
-    
-
-    
-
-    
 }
 void liberarLista(nodoHechizero* &listaHechizeros) {
     while (listaHechizeros != nullptr) {
@@ -838,6 +859,7 @@ int main()
         Hechizo *hechizo1 = new Hechizo(i + 1, hechizo.nombreMago, hechizo.numVertices, hechizo.tiposVertices, hechizo.numAristas, hechizo.arrAristas);
         // hechizo1->print();
         int **matriz = matrizAdyacencia(hechizo1);
+        esSospechozo(hechizo1, matriz);
 
         legalidad(hechizo1, matriz);
         cout << nombramientoDeHechizo(hechizo1, matriz) << endl;
