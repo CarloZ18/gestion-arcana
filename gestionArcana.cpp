@@ -36,15 +36,14 @@ enum class TipoAsociado : char
     F = 'F', // Runa de estabilidad
 };
 
-struct nodoHechizero{
+struct nodoHechizero
+{
     string nombre;
     int cantHIlegales;
-    nodoHechizero*next=nullptr;
-
+    nodoHechizero *next = nullptr;
 };
 
-nodoHechizero*listaHechizeros=nullptr;
-
+nodoHechizero *listaHechizeros = nullptr;
 
 class Arista
 {
@@ -102,9 +101,11 @@ struct Nodo
     Nodo *next;
 };
 
+template <typename T>
 class ListE
 {
-    Arista *ptr_principal;
+    T *ptr_principal;
+    T *ptr_siguiente;
     int size;
 
 public:
@@ -115,7 +116,7 @@ public:
         return ptr_principal == nullptr;
     }
 
-    void push(int origen, int destino, int ponderacion)
+    void pushArista(int origen, int destino, int ponderacion)
     {
         Arista *newArista = new Arista(origen, destino, ponderacion);
         newArista->modificarPtr_siguiente(nullptr);
@@ -126,7 +127,7 @@ public:
         }
         else
         {
-            Arista *ptr_aux = ptr_principal;
+            T *ptr_aux = ptr_principal;
             while (ptr_aux->obtenerPtr_siguiente() != nullptr)
             {
                 ptr_aux = ptr_aux->obtenerPtr_siguiente();
@@ -136,9 +137,40 @@ public:
         size++;
     };
 
-    Arista *obtenerPtrPrincipal()
+    void push(T *data)
+    {
+        T *newArista = new T(data);
+        newArista->modificarPtr_siguiente(nullptr);
+
+        if (isEmpty())
+        {
+            ptr_principal = newArista;
+        }
+        else
+        {
+            T *ptr_aux = ptr_principal;
+            while (ptr_aux->obtenerPtr_siguiente() != nullptr)
+            {
+                ptr_aux = ptr_aux->obtenerPtr_siguiente();
+            }
+            ptr_aux->modificarPtr_siguiente(newArista);
+        }
+        size++;
+    };
+
+    T *obtenerPtrPrincipal()
     {
         return ptr_principal;
+    }
+
+    T *obtenerPtrSiguiente()
+    {
+        return ptr_siguiente;
+    }
+
+    void *setPtrSiguiente(T *ptr_siguiente)
+    {
+        return ptr_siguiente;
     }
 
     int pop()
@@ -147,7 +179,7 @@ public:
         {
             throw out_of_range("List is empty");
         }
-        Arista *aux = ptr_principal;
+        T *aux = ptr_principal;
         ptr_principal = ptr_principal->obtenerPtr_siguiente();
         size--;
         return aux->obtenerPonderacion();
@@ -157,7 +189,7 @@ public:
     print()
     {
 
-        Arista *ptr_indice = ptr_principal;
+        T *ptr_indice = ptr_principal;
 
         cout << "Valores: ";
         while (ptr_indice != nullptr)
@@ -174,7 +206,7 @@ public:
 
 class Vertice
 {
-    ListE aristasAsociadas;
+    ListE<Arista> aristasAsociadas;
     TipoAsociado tipoAsociado;
     int indice;
 
@@ -195,7 +227,7 @@ public:
 
     void agregarArista(int origen, int destino, int ponderacion)
     {
-        aristasAsociadas.push(origen, destino, ponderacion);
+        aristasAsociadas.pushArista(origen, destino, ponderacion);
     }
 
     Arista *obtenerPrimeraArista()
@@ -240,6 +272,8 @@ class Hechizo
     Hechicero hechicero;
     string nombre;
     Vertice *vertice;
+    ListE<Hechizo> hechizosLegales;
+    ListE<Hechizo> hechizosIlegales;
     char runaElemental;
     int IDHechizo;
     int numVertices;
@@ -322,10 +356,14 @@ public:
         return this->numVertices;
     }
 
-    int obtenerNumAristas() const
+    ListE<Hechizo> obtenerHechizosLegales()
     {
-        return this->numAristas;
+        while (hechizosLegales.obtenerPtrPrincipal() != nullptr)
+        {
+            /* code */
+        }
     }
+
     string obtenerTiposVertices()
     {
         return this->cadenaTipos;
@@ -349,9 +387,6 @@ public:
         }
     }
 };
-
-
-
 
 int **matrizAdyacencia(Hechizo *hechizo)
 {
@@ -604,13 +639,16 @@ int cicloMasLargo(Hechizo *hechizo, int **matriz)
     return maxCicloGlobal;
 }
 
-nodoHechizero* buscarOAgregarHechicero(const std::string& nombre) {
-    nodoHechizero* actual = listaHechizeros;
-    nodoHechizero* anterior = nullptr;
+nodoHechizero *buscarOAgregarHechicero(const std::string &nombre)
+{
+    nodoHechizero *actual = listaHechizeros;
+    nodoHechizero *anterior = nullptr;
 
     // Buscar el hechicero en la lista
-    while (actual != nullptr) {
-        if (actual->nombre == nombre) {
+    while (actual != nullptr)
+    {
+        if (actual->nombre == nombre)
+        {
             return actual; // Si lo encuentra, retorna el nodo
         }
         anterior = actual;
@@ -618,22 +656,22 @@ nodoHechizero* buscarOAgregarHechicero(const std::string& nombre) {
     }
 
     // Si no está en la lista, agregar un nuevo nodo
-    nodoHechizero* nuevo = new nodoHechizero;
+    nodoHechizero *nuevo = new nodoHechizero;
     nuevo->nombre = nombre;
     nuevo->cantHIlegales = 0;
     nuevo->next = nullptr;
 
-    if (anterior == nullptr) { // Lista vacía
+    if (anterior == nullptr)
+    { // Lista vacía
         listaHechizeros = nuevo;
-    } else { // Añadir al final de la lista
+    }
+    else
+    { // Añadir al final de la lista
         anterior->next = nuevo;
     }
 
     return nuevo;
 }
-
-
-
 
 bool detectarHechizoArcante(Hechizo *hechizo)
 {
@@ -713,7 +751,53 @@ string caminoMasPesado(Hechizo *hechizo, int **matriz)
         }
     }
 }
+bool legalidad(Hechizo *hechizo, int **matriz)
+{
+    if (cuantasRunas(hechizo) == false)
+    {
+        return false;
+    }
+    if (cuantasA(hechizo) == false)
+    {
+        return false;
+    }
+    if (distribucionCorrecta(hechizo, matriz) == false)
+    {
+        return false;
+    }
 
+    if (adyacenciaDeRunas(hechizo, matriz) == false)
+    {
+        return false;
+    }
+
+    if (cicloMasLargo(hechizo, matriz) % 2 != 0)
+    {
+        return false;
+    }
+    return true;
+}
+// Regla 6
+
+// Regla 7
+void esSospechozo(Hechizo *hechizo, int **matriz)
+{
+    string nombreH = hechizo->obtenerHechicero().obtenerNombreCompleto();
+    nodoHechizero *nodo = buscarOAgregarHechicero(nombreH);
+    if (legalidad(hechizo, matriz) == false)
+    {
+        nodo->cantHIlegales++;
+    }
+    if (nodo->cantHIlegales >= 3)
+    {
+        ofstream archivo2("underInvestigation.in", ios::app);
+        if (archivo2.is_open())
+        {
+            archivo2 << nodo->nombre << endl;
+            archivo2.close();
+        }
+    }
+}
 // Regla 8
 string nombramientoDeHechizo(Hechizo *hechizo, int **matriz)
 {
@@ -745,64 +829,19 @@ string nombramientoDeHechizo(Hechizo *hechizo, int **matriz)
     return nombreHechizo + " " + sufijo + " " + indicador;
 };
 
-bool legalidad(Hechizo *hechizo, int **matriz)
+void liberarLista(nodoHechizero *&listaHechizeros)
 {
-    if (cuantasRunas(hechizo) == false)
+    while (listaHechizeros != nullptr)
     {
-        return false;
-    }
-    if (cuantasA(hechizo) == false)
-    {
-        return false;
-    }
-    if (distribucionCorrecta(hechizo, matriz) == false)
-    {
-        return false;
-    }
-
-    if (adyacenciaDeRunas(hechizo, matriz) == false)
-    {
-        return false;
-    }
-
-    if (cicloMasLargo(hechizo, matriz) % 2 != 0)
-    {
-        return false;
-    }
-    return true;
-}
-//Regla 7
-void esSospechozo(Hechizo* hechizo, int **matriz){
-    string nombreH= hechizo->obtenerHechicero().obtenerNombreCompleto();
-    nodoHechizero*nodo=buscarOAgregarHechicero(nombreH);
-    if(legalidad(hechizo, matriz)==false){
-        nodo->cantHIlegales++;
-    }
-    if(nodo->cantHIlegales>=3){
-        ofstream archivo2("underInvestigation.in", ios::app);
-        if(archivo2.is_open()){
-            archivo2<<nodo->nombre<<endl;
-            archivo2.close();
-            
-        }
-    }
-    
-
-    
-
-    
-}
-void liberarLista(nodoHechizero* &listaHechizeros) {
-    while (listaHechizeros != nullptr) {
-        nodoHechizero* temp = listaHechizeros; 
-        listaHechizeros = listaHechizeros->next; 
-        delete temp; 
+        nodoHechizero *temp = listaHechizeros;
+        listaHechizeros = listaHechizeros->next;
+        delete temp;
     }
 }
 
-
- 
-
+void salida()
+{
+}
 
 int main()
 {
@@ -890,8 +929,6 @@ int main()
     delete[] hechizo.arrAristas;
 
     liberarLista(listaHechizeros);
-
-
 
     return 0;
 }
