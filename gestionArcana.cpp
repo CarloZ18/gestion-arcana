@@ -5,22 +5,6 @@
 #include <string>
 using namespace std;
 
-/* Modelo de entrada:
-1                   // Numero de hechizos
-Kharlion Malondi    // Hechicero
-6                   // Vertices del hechizo
-ABFBDB              // Tipo de cada vertice
-8                   // Aristas del hechizo
-6 1 2               // (origen, destino, ponderacion)
-6 4 1
-1 4 4
-1 2 1
-2 4 7
-2 5 2
-5 3 1
-4 3 3
-*/
-
 // Enumeración de tipos permitidos.
 enum class TipoAsociado : char
 {
@@ -113,7 +97,7 @@ public:
     }
 
     // Inserta al final de la lista un elemento (puntero a T)
-    void push(T *data)
+    void push_back(T *data)
     {
         Node *newNode = new Node(data);
         if (isEmpty())
@@ -129,6 +113,16 @@ public:
             }
             current->next = newNode;
         }
+        size++;
+    }
+
+    void push_front(T *data)
+    {
+        Node *newNode = new Node(data);
+
+        Node *aux = head;
+        head = newNode;
+        head->next = aux;
         size++;
     }
 
@@ -192,7 +186,7 @@ public:
     void agregarArista(int *arista)
     {
         Arista *nuevaArista = new Arista(arista);
-        aristasAsociadas.push(nuevaArista);
+        aristasAsociadas.push_back(nuevaArista);
     }
 
     Arista *obtenerPrimeraArista()
@@ -430,37 +424,49 @@ bool cuantasRunas(Hechizo *hechizo)
         switch (c)
         {
         case 'I':
-            hechizo->setRunaElemental(c);
+            if (hechizo->obtenerRunaElemental() == ' ')
+                hechizo->setRunaElemental(c);
+
             contadorI++;
             if (contadorI > 3 || (contadorI > 0 && (contadorQ + contadorT + contadorV + contadorL + contadorO) > 0))
                 return false;
             break;
         case 'Q':
-            hechizo->setRunaElemental(c);
+            if (hechizo->obtenerRunaElemental() == ' ')
+                hechizo->setRunaElemental(c);
+
             contadorQ++;
             if (contadorQ > 3 || (contadorQ > 0 && (contadorI + contadorT + contadorV + contadorL + contadorO) > 0))
                 return false;
             break;
         case 'T':
-            hechizo->setRunaElemental(c);
+            if (hechizo->obtenerRunaElemental() == ' ')
+                hechizo->setRunaElemental(c);
+
             contadorT++;
             if (contadorT > 3 || (contadorT > 0 && (contadorQ + contadorI + contadorV + contadorL + contadorO) > 0))
                 return false;
             break;
         case 'V':
-            hechizo->setRunaElemental(c);
+            if (hechizo->obtenerRunaElemental() == ' ')
+                hechizo->setRunaElemental(c);
+
             contadorV++;
             if (contadorV > 3 || (contadorV > 0 && (contadorQ + contadorT + contadorI + contadorL + contadorO) > 0))
                 return false;
             break;
         case 'L':
-            hechizo->setRunaElemental(c);
+            if (hechizo->obtenerRunaElemental() == ' ')
+                hechizo->setRunaElemental(c);
+
             contadorL++;
             if (contadorL > 3 || (contadorL > 0 && (contadorQ + contadorT + contadorV + contadorI + contadorO) > 0))
                 return false;
             break;
         case 'O':
-            hechizo->setRunaElemental(c);
+            if (hechizo->obtenerRunaElemental() == ' ')
+                hechizo->setRunaElemental(c);
+
             contadorO++;
             if (contadorO > 3 || (contadorO > 0 && (contadorQ + contadorT + contadorV + contadorL + contadorI) > 0))
                 return false;
@@ -497,7 +503,7 @@ bool adyacenciaDeRunas(Hechizo *hechizo, int **matriz)
 // Función que recorre el grafo en búsqueda de ciclos.
 int cicloDfs(int **matriz, int numVertices, int inicio, int actual, bool *visitado, int cuenta)
 {
-    int maxCiclo = -1;
+    int maxCiclo = 0;
     for (int vecino = 0; vecino < numVertices; vecino++)
     {
         if (matriz[actual][vecino] != 0)
@@ -538,8 +544,8 @@ int cicloMasLargo(Hechizo *hechizo, int **matriz)
             maxCicloGlobal = cicloDesdeI;
         visitado[i] = false;
     }
-
     delete[] visitado;
+
     return maxCicloGlobal;
 }
 
@@ -622,9 +628,10 @@ string caminoMasPesado(Hechizo *hechizo, int **matriz)
             }
         }
         delete[] visitado;
+        cout << maxPeso;
         if (maxPeso > cicloMasLargo(hechizo, matriz))
             return "modicum ";
-        else if (maxPeso < cicloMasLargo(hechizo, matriz))
+        else if (maxPeso <= cicloMasLargo(hechizo, matriz))
             return "maximus ";
         else
             return ""; // Si son iguales, se puede retornar cadena vacía u otra indicación.
@@ -662,6 +669,7 @@ void esSospechozo(Hechizo *hechizo, int **matriz)
 
             if (archivo2.is_open())
             {
+
                 archivo2 << nombreH << endl;
                 archivo2.close();
             }
@@ -714,6 +722,7 @@ void liberarLista(nodoHechizero *&listaHechizeros)
 // Función de salida: escribe en "processedSpell.out" los hechizos legales e ilegales.
 void escribirEnArchivo1(const ListE<Hechizo> &listaLegales, const ListE<Hechizo> &listaIlegales)
 {
+
     ofstream archivo3("processedSpell.out");
     if (archivo3.is_open())
     {
@@ -721,6 +730,7 @@ void escribirEnArchivo1(const ListE<Hechizo> &listaLegales, const ListE<Hechizo>
         // Iterar sobre la lista de hechizos legales
         typename ListE<Hechizo>::Node *nodoActual;
         nodoActual = listaLegales.getHead();
+
         while (nodoActual != nullptr)
         {
             archivo3 << endl;
@@ -785,14 +795,14 @@ int main()
         // Clasificar el hechizo (se utiliza legalidad; si NO es legal se considera "sospechozo")
         if (!legalidad(hechizo1, matriz))
         {
-            listaIlegalesGlobal.push(hechizo1);
+            listaIlegalesGlobal.push_back(hechizo1);
             esSospechozo(hechizo1, matriz);
         }
         else
         {
-            listaLegalesGlobal.push(hechizo1);
+            listaLegalesGlobal.push_back(hechizo1);
         }
-
+        cout << cicloMasLargo(hechizo1, matriz);
         // Liberar la matriz de adyacencia
         for (int k = 0; k < hechizo.numVertices; k++)
         {
